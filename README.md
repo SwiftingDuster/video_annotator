@@ -4,7 +4,7 @@ Video player with annotation capabilities.
 # Requirements
 Python3
 
-PySide2 (Qt5)
+PyQt5
 
 # Setup
 1. Clone this git repository
@@ -13,10 +13,10 @@ PySide2 (Qt5)
 git clone https://github.com/SwiftingDuster/video_annotator
 ```
 
-2. Install Qt5 library
+2. Install PyQt5 library
 
 ```
-pip3 install PySide2
+pip3 install PyQt5
 ```
 
 # Run
