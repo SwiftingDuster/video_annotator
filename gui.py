@@ -1,10 +1,8 @@
-from PyQt5.QtCore import QCoreApplication, QDir, QMetaObject, QRect, Qt, QUrl
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtMultimedia import QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import (QAction, QFileDialog, QHBoxLayout, QLabel,
-                             QMainWindow, QMenu, QMenuBar, QPushButton,
-                             QScrollArea, QSlider, QStatusBar, QStyle,
-                             QTextEdit, QVBoxLayout, QWidget)
 
 
 class Ui_MainWindow(QMainWindow):
