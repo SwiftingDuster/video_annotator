@@ -7,18 +7,23 @@ from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 class Ui_MainWindow(QMainWindow):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1280, 720)
+
+        if not MainWindow.objectName():
+            MainWindow.setObjectName(u"MainWindow")
+        MainWindow.resize(1127, 608)
+
         self.central_widget = QWidget(MainWindow)
         self.central_widget.setObjectName("central_widget")
         self.verticalLayout = QVBoxLayout(self.central_widget)
         self.verticalLayout.setObjectName("verticalLayout")
         self.upper_h_layout = QHBoxLayout()
         self.upper_h_layout.setObjectName("upper_h_layout")
+
         # == Video player ==
         self.video_player_widget = QVideoWidget(self.central_widget)
         self.video_player_widget.setObjectName("video_player_widget")
         self.upper_h_layout.addWidget(self.video_player_widget)
+
         # Backend media player
         self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
         self.media_player.setVideoOutput(self.video_player_widget)
