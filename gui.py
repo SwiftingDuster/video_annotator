@@ -10,7 +10,7 @@ class Ui_MainWindow(QMainWindow):
 
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1127, 608)
+        MainWindow.resize(1200, 600)
 
         self.central_widget = QWidget(MainWindow)
         self.central_widget.setObjectName("central_widget")
@@ -65,23 +65,37 @@ class Ui_MainWindow(QMainWindow):
         self.play_button.setIcon(
             self.style().standardIcon(QStyle.SP_MediaPlay))
         self.lower_h_layout.addWidget(self.play_button)
+        self.play_button.setEnabled(False)
+        
         # Video seekbar
         self.seek_slider = QSlider(self.central_widget)
         self.seek_slider.setOrientation(Qt.Horizontal)
         self.seek_slider.setObjectName("seek_slider")
+        self.seek_slider.setEnabled(False)
+        
         self.lower_h_layout.addWidget(self.seek_slider)
+        
         # Capture start button
         self.cap_start_button = QPushButton(self.central_widget)
         self.cap_start_button.setObjectName("cap_start_button")
+        self.cap_start_button.setEnabled(False)        
+        
         self.lower_h_layout.addWidget(self.cap_start_button)
+        
         # Capture end button
         self.cap_end_button = QPushButton(self.central_widget)
         self.cap_end_button.setObjectName("cap_end_button")
+        self.cap_end_button.setEnabled(False)        
+        
         self.lower_h_layout.addWidget(self.cap_end_button)
+        
         # Export button
         self.export_button = QPushButton(self.central_widget)
         self.export_button.setObjectName("export_button")
+        self.export_button.setEnabled(False)
+        
         self.lower_h_layout.addWidget(self.export_button)
+        
         # Layouts
         self.verticalLayout.addLayout(self.lower_h_layout)
         MainWindow.setCentralWidget(self.central_widget)
@@ -132,13 +146,23 @@ class Ui_MainWindow(QMainWindow):
         self.seek_slider.sliderMoved.connect(self.setPosition)
 
     def openFile(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open Movie",
+        file_name, _ = QFileDialog.getOpenFileName(self, "Open Video",
                                                    QDir.homePath())
         if file_name != '':
             print(file_name)
             self.media_player.setMedia(
                 QMediaContent(QUrl.fromLocalFile(file_name)))
             self.play_button.setEnabled(True)
+
+        fileName, _ = QFileDialog.getOpenFileName(
+            None, 'Open Image', '', 'Video Files (*.mp4)')
+        if fileName:
+            ui.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
+            ui.mediaPlayer.setVolume(100)
+            ui.play_button.setEnabled(True)
+            ui.seek_slider.setEnabled(True)
+            ui.volume_slider.setEnabled(True)
+            ui.text_videoinfo.setText(get_properties(ui, fileName))
 
     def play(self):
         if self.media_player.state() == QMediaPlayer.State.PlayingState:
