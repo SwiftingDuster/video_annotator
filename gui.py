@@ -1,7 +1,7 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from PyQt5.QtMultimedia import QMediaPlayer
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 
@@ -146,23 +146,15 @@ class Ui_MainWindow(QMainWindow):
         self.seek_slider.sliderMoved.connect(self.setPosition)
 
     def openFile(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open Video",
-                                                   QDir.homePath())
-        if file_name != '':
-            print(file_name)
-            self.media_player.setMedia(
-                QMediaContent(QUrl.fromLocalFile(file_name)))
-            self.play_button.setEnabled(True)
-
         fileName, _ = QFileDialog.getOpenFileName(
             None, 'Open Image', '', 'Video Files (*.mp4)')
         if fileName:
-            ui.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
-            ui.mediaPlayer.setVolume(100)
-            ui.play_button.setEnabled(True)
-            ui.seek_slider.setEnabled(True)
-            ui.volume_slider.setEnabled(True)
-            ui.text_videoinfo.setText(get_properties(ui, fileName))
+            self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
+            self.media_player.setVolume(100)
+            self.play_button.setEnabled(True)
+            self.seek_slider.setEnabled(True)
+            #self.volume_slider.setEnabled(True)
+            self.text_videoinfo.setText(fileName)
 
     def play(self):
         if self.media_player.state() == QMediaPlayer.State.PlayingState:
