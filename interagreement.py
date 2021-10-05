@@ -13,21 +13,21 @@ xmlList = ["test1.xml", "test2.xml"]  # Store xml file names/dir as strings in l
 # Make function to parse xml files, return list of ["annotator", frame start, frame end]
 def xml_to_pygammaIn(xmlFileIn):
     annotationList = []
-    j, k = 0, 0
+    j = 1
+    framestart = f's{j}Start'
+    frameend = f's{j}End'
     for i in range(len(xmlFileIn)):
         tree = ET.parse(xmlFileIn[i])
         root = tree.getroot()
         annotator = root.find("annotator").text
         for framedata in root.iter("framedata"):
-            for elem in framedata.iter():
-                if elem != framedata:  # append to list with the format element = ["annotator", frame start, frame end]
-                    if j % 2 == 0:
-                        annotationList.append([annotator, int(elem.text), ""])
-                        j += 1
-                    else:
-                        annotationList[k][2] = int(elem.text)
-                        j += 1
-                        k += 1
+            k = 0
+            for f in framedata.iter():
+                if f != framedata:
+                    k += 1
+            for l in range(k):
+                annotationList.append([annotator, int(framedata.find(framestart).text), int(framedata.find(frameend).text)])
+                j += 1
     return annotationList
 
 # Function to calculate gamma for inter-annotator agreement. Gamma closer to 1 = higher agreement
