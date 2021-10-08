@@ -1,29 +1,30 @@
 <annotation>
-	<annotator>Name1</annotator>
-	<folder>file1</folder>
+	<annotator>nameless</annotator>
+	<folder>File2</folder>
 	<source>
 		<database>ImageNet database</database>
 	</source>
 	<size>
-		<width>100</width>
-		<height>333</height>
-		<depth>3</depth>
+		<width>200</width>
+		<height>222</height>
+		<depth>2</depth>
 	</size>
-	<video_resolution>1920x1080</video_resolution>
+	<video_resolution>1920x1020</video_resolution>
 	<segmented>0</segmented>
 	<object>
-		<name>n0007846</name>
+		<name>testname</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
-		<bndbox>
-			<xmin>161</xmin>
-			<ymin>52</ymin>
-			<xmax>285</xmax>
-			<ymax>247</ymax>
-		</bndbox>
+		<boundbox>
+			<xmin>160</xmin>
+			<ymin>50</ymin>
+			<xmax>200</xmax>
+			<ymax>130</ymax>
+		</boundbox>
 		<framedata>
-
+			<s1Start>10</s1Start>
+			<s1End>200</s1End>
 		</framedata>
 	</object>
 </annotation>
