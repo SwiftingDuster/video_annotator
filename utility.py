@@ -1,23 +1,30 @@
+from typing import Tuple
+
 import cv2
 
 
-def get_video_metadata(path):
+def get_video_metadata(path) -> Tuple[int, Tuple[int, int], int]:
     cap = cv2.VideoCapture(path)
     fps = cap.get(cv2.CAP_PROP_FPS)
     resolution = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
                   int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    print('FPS, Resolution: ', fps, resolution)
-    timestamps = [cap.get(cv2.CAP_PROP_POS_MSEC)]
-    print(timestamps)
+    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     cap.release()
+    return (fps, resolution, total_frames)
 
 
-def timestamp_from_milisec(ms):
+def timestamp_from_ms(ms, show_milisecs=False):
     seconds = (ms/1000) % 60
     seconds = int(seconds)
     minutes = (ms/(1000*60)) % 60
     minutes = int(minutes)
-    hours = (ms/(1000*60*60)) % 24
-    if hours < 1:
-        return "%02d:%02d" % (minutes, seconds)
-    return "%02d:%02d:%02d" % (hours, minutes, seconds)
+    if not show_milisecs:
+        hours = (ms/(1000*60*60)) % 24
+        if hours < 1:
+            return "%02d:%02d" % (minutes, seconds)
+        return "%02d:%02d:%02d" % (hours, minutes, seconds)
+    else:
+        milisecs = ms % 1000
+        if minutes < 1:
+            return "%02ds:%03dms" % (seconds, milisecs)
+        return "%02dm:%02ds:%03dms" % (minutes, seconds, milisecs)

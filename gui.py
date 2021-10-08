@@ -1,13 +1,16 @@
-from PyQt5.QtCore import QCoreApplication, QDir, QMetaObject, QRect, Qt, QUrl
+from PyQt5.QtCore import (QAbstractItemModel, QCoreApplication, QDir,
+                          QMetaObject, QRect, Qt, QUrl)
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaResource
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import (QAction, QFileDialog, QHBoxLayout, QLabel,
+from PyQt5.QtWidgets import (QAction, QFileDialog, QHBoxLayout, QItemDelegate,
+                             QLabel, QListView, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QPushButton,
                              QScrollArea, QSlider, QStatusBar, QStyle,
                              QTextEdit, QVBoxLayout, QWidget)
 
 from models import VideoAnnotationData, VideoAnnotationSegment
-from utility import timestamp_from_milisec
+from utility import timestamp_from_ms
+from widgets.capture_segment_widget import CaptureSegmentWidget
 
 
 class Ui_MainWindow(QMainWindow):
@@ -16,8 +19,8 @@ class Ui_MainWindow(QMainWindow):
         super().__init__()
 
         # The active video and capture data
-        self.annotation_data = VideoAnnotationData('', (0, 0))
-        self.capture = VideoAnnotationSegment(0, 0)
+        self.annotation: VideoAnnotationData = None
+        self.capture: VideoAnnotationSegment = None
         self.capturing = False
 
     def setupUi(self, MainWindow):
@@ -25,6 +28,7 @@ class Ui_MainWindow(QMainWindow):
         self.central_widget = QWidget(MainWindow)
         self.vertical_layout = QVBoxLayout(self.central_widget)
         self.upper_h_layout = QHBoxLayout()
+
         # == Video player ==
         self.video_player_widget = QVideoWidget(self.central_widget)
         self.upper_h_layout.addWidget(self.video_player_widget)
@@ -33,21 +37,21 @@ class Ui_MainWindow(QMainWindow):
         self.media_player.setVideoOutput(self.video_player_widget)
         self.media_player.setNotifyInterval(10)
 
-        # == Video info and event frames ==
+        # == Information Panel ==
         self.upper_right_v_layout = QVBoxLayout()
+        # Video Info
         self.label_videoinfo = QLabel(self.central_widget)
         self.upper_right_v_layout.addWidget(self.label_videoinfo)
         self.text_videoinfo = QTextEdit(self.central_widget)
         self.text_videoinfo.setReadOnly(True)
         self.upper_right_v_layout.addWidget(self.text_videoinfo)
+        # Captured Frames
         self.label_events = QLabel(self.central_widget)
         self.upper_right_v_layout.addWidget(self.label_events)
-        self.scroll_area_events = QScrollArea(self.central_widget)
-        self.scroll_area_events.setWidgetResizable(True)
-        self.scroll_area_content = QWidget()
-        self.scroll_area_content.setGeometry(QRect(0, 0, 271, 349))
-        self.scroll_area_events.setWidget(self.scroll_area_content)
-        self.upper_right_v_layout.addWidget(self.scroll_area_events)
+        self.listwidget_captures = QListWidget(self.central_widget)
+        self.upper_right_v_layout.addWidget(self.listwidget_captures)
+
+        # Layouts
         self.upper_right_v_layout.setStretch(1, 1)
         self.upper_right_v_layout.setStretch(3, 3)
         self.upper_h_layout.addLayout(self.upper_right_v_layout)
@@ -100,17 +104,17 @@ class Ui_MainWindow(QMainWindow):
         self.button_cap_start.setEnabled(False)
         self.button_cap_end.setEnabled(False)
         self.button_export.setEnabled(False)
+        self.seek_slider.setEnabled(False)
 
         # Internal data
         self.capturing = False
-        self.captured_frames = []
 
     def retranslateUi(self, MainWindow):
         _translate = QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label_videoinfo.setText(
             _translate("MainWindow", "Video Information"))
-        self.label_events.setText(_translate("MainWindow", "Event Frames"))
+        self.label_events.setText(_translate("MainWindow", "Capture Frames"))
         self.button_cap_start.setText(
             _translate("MainWindow", "Capture Start"))
         self.button_cap_end.setText(_translate("MainWindow", "Capture End"))
@@ -136,20 +140,29 @@ class Ui_MainWindow(QMainWindow):
         self.button_cap_start.clicked.connect(self.button_start_capture)
         self.button_cap_end.clicked.connect(self.button_end_capture)
 
+        self.listwidget_captures.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu)
+        self.listwidget_captures.customContextMenuRequested.connect(
+            self.listwidget_captures_contextmenu_open)
+        self.listwidget_captures.model().rowsInserted.connect(
+            self.listwidget_captures_row_inserted)
+
     # [Event] Called when open file action is triggered.
     def action_open_file_clicked(self):
-        fileName, _ = QFileDialog.getOpenFileName(
+        file_path, _ = QFileDialog.getOpenFileName(
             None, 'Open Image', '', 'Video Files (*.mp4)')
-        if fileName:
+        if file_path:
             self.media_player.setMedia(
-                QMediaContent(QUrl.fromLocalFile(fileName)))
+                QMediaContent(QUrl.fromLocalFile(file_path)))
             self.media_player.setVolume(100)
-            self.button_play.setEnabled(True)
-            self.seek_slider.setEnabled(True)
-            self.text_videoinfo.setText(fileName)
 
+            self.seek_slider.setEnabled(True)
+            self.listwidget_captures.clear()
+            # Init new video annotation data
+            self.annotation = VideoAnnotationData(file_path)
             # Set video info
-            self.text_videoinfo.setText("Filename: %s" % fileName)
+            self.text_videoinfo.setText(
+                "Filename: {0}\nFPS: {1}\nResolution: {2}x{3}".format(self.annotation.filename, self.annotation.fps, self.annotation.resolution[0], self.annotation.resolution[1]))
 
     # [Event] Called when play/pause button is clicked.
     def button_play_clicked(self):
@@ -167,22 +180,26 @@ class Ui_MainWindow(QMainWindow):
     # [Event] Called when capture start button is clicked.
     def button_start_capture(self):
         self.capturing = True
-        self.capture.frame_start = self.media_player.position()
+        start_ms = self.media_player.position()
+        self.capture = VideoAnnotationSegment(start_ms, 0)
         self.button_cap_start.setEnabled(False)
 
     # [Event] Called when capture end button is clicked.
     def button_end_capture(self):
-        self.capture.frame_end = self.media_player.position()
+        self.capture.frame_end_ms = self.media_player.position()
 
-        if self.capturing and self.capture.frame_start > self.capture.frame_end:
-            # Prevent capture from ending if frame end is earlier than start.
+        if self.capturing and self.capture.frame_start_ms > self.capture.frame_end_ms:
+            # Prevent capture from ending if frame end is earlier than start. (Dragging slider back)
             # TODO: Error message dialog or disable button
             return
 
+        self.annotation.frames.append(self.capture)
+
+        # Update UI state
+        count = self.listwidget_captures.count() + 1
+        self.__add_capture_segment(
+            count, self.capture.frame_start_ms, self.capture.frame_end_ms)
         self.capturing = False
-        self.annotation_data.frames.append(
-            (self.capture.frame_start, self.capture.frame_end))
-        print('Captured frames:', self.annotation_data.frames)
         self.button_cap_start.setEnabled(True)
         self.button_cap_end.setEnabled(False)
 
@@ -197,6 +214,9 @@ class Ui_MainWindow(QMainWindow):
                 self.style().standardIcon(QStyle.SP_MediaPause))
             self.button_play.setText("Pause")
         else:
+            if state == QMediaPlayer.State.StoppedState:
+                # MediaPlayer reaches end of stream.
+                self.button_cap_start.setEnabled(False)
             self.button_play.setIcon(
                 self.style().standardIcon(QStyle.SP_MediaPlay))
             self.button_play.setText("Play")
@@ -211,11 +231,12 @@ class Ui_MainWindow(QMainWindow):
         # Update seek slider progress
         self.seek_slider.setValue(position)
         # Update timestamp
-        self.label_video_position.setText(timestamp_from_milisec(position))
+        self.label_video_position.setText('{0} / {1}'.format(timestamp_from_ms(
+            position), timestamp_from_ms(self.media_player.duration())))
 
         # When capturing, update enabled state of end capture button based on whether end frame is after start frame.
         if self.capturing:
-            if self.capture.frame_start < self.media_player.position():
+            if self.capture.frame_start_ms < self.media_player.position():
                 if not self.button_cap_end.isEnabled():
                     self.button_cap_end.setEnabled(True)
             else:
@@ -225,3 +246,36 @@ class Ui_MainWindow(QMainWindow):
     # [Event] Called when the total duration of the video changes, such as opening a new video file.
     def media_duration_changed(self, duration):
         self.seek_slider.setRange(0, duration)
+
+    def listwidget_captures_row_inserted(self, item):
+        pass
+
+    def listwidget_captures_contextmenu_open(self, pos):
+        global_pos = self.listwidget_captures.mapToGlobal(pos)
+
+        def delete_selected():
+            items = self.listwidget_captures.selectedItems()
+            for i in items:
+                row = self.listwidget_captures.row(i)
+                self.listwidget_captures.takeItem(row)
+                # TODO: Remove segment from self.annotation
+
+        context_actions = QMenu()
+        context_actions.addAction("Delete Selected", delete_selected)
+
+        context_actions.exec(global_pos)
+
+    def __add_capture_segment(self, number, frame_start_ms, frame_end_ms):
+        start = timestamp_from_ms(frame_start_ms, True)
+        end = timestamp_from_ms(frame_end_ms, True)
+        segment_text = "{0}: {1} - {2}".format(number, start, end)
+
+        seg_widget = CaptureSegmentWidget()
+        seg_widget.set_text(segment_text).set_subtext(
+            "Frames {0} to {1}".format(self.annotation.frame_from_ms(frame_start_ms), self.annotation.frame_from_ms(frame_end_ms)))
+        listwidget_item = QListWidgetItem(self.listwidget_captures)
+        listwidget_item.setSizeHint(seg_widget.sizeHint())
+
+        self.listwidget_captures.addItem(listwidget_item)
+        self.listwidget_captures.setItemWidget(
+            listwidget_item, seg_widget)
