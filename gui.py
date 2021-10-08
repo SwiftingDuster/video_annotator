@@ -6,8 +6,19 @@ from PyQt5.QtWidgets import (QAction, QFileDialog, QHBoxLayout, QLabel,
                              QScrollArea, QSlider, QStatusBar, QStyle,
                              QTextEdit, QVBoxLayout, QWidget)
 
+from models import VideoAnnotationData, VideoAnnotationSegment
+from utility import timestamp_from_milisec
+
 
 class Ui_MainWindow(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+        # The active video and capture data
+        self.annotation_data = VideoAnnotationData('', (0, 0))
+        self.capture = VideoAnnotationSegment(0, 0)
+        self.capturing = False
 
     def setupUi(self, MainWindow):
         MainWindow.resize(1280, 720)
@@ -112,20 +123,21 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file.setShortcut(_translate("MainWindow", "F1"))
 
     def setupEvents(self):
-        self.action_open_file.triggered.connect(self.openFile)
+        self.action_open_file.triggered.connect(self.action_open_file_clicked)
 
         self.button_play.clicked.connect(self.button_play_clicked)
         self.seek_slider.sliderMoved.connect(
-            self.slider_set_mediaplayer_position)
+            self.seek_slider_position_changed)
         self.media_player.stateChanged.connect(self.media_state_changed)
-        self.media_player.mediaStatusChanged.connect(self.media_status_changed)
+        # self.media_player.mediaStatusChanged.connect(self.media_status_changed)
         self.media_player.positionChanged.connect(self.media_position_changed)
         self.media_player.durationChanged.connect(self.media_duration_changed)
 
         self.button_cap_start.clicked.connect(self.button_start_capture)
         self.button_cap_end.clicked.connect(self.button_end_capture)
 
-    def openFile(self):
+    # [Event] Called when open file action is triggered.
+    def action_open_file_clicked(self):
         fileName, _ = QFileDialog.getOpenFileName(
             None, 'Open Image', '', 'Video Files (*.mp4)')
         if fileName:
@@ -139,9 +151,10 @@ class Ui_MainWindow(QMainWindow):
             # Set video info
             self.text_videoinfo.setText("Filename: %s" % fileName)
 
+    # [Event] Called when play/pause button is clicked.
     def button_play_clicked(self):
         if self.media_player.mediaStatus() == QMediaPlayer.MediaStatus.NoMedia:
-            self.openFile()
+            self.action_open_file_clicked()
 
         if self.media_player.state() == QMediaPlayer.State.PlayingState:
             self.media_player.pause()
@@ -151,9 +164,33 @@ class Ui_MainWindow(QMainWindow):
                 # Enable capture start button
                 self.button_cap_start.setEnabled(True)
 
-    def slider_set_mediaplayer_position(self, position):
+    # [Event] Called when capture start button is clicked.
+    def button_start_capture(self):
+        self.capturing = True
+        self.capture.frame_start = self.media_player.position()
+        self.button_cap_start.setEnabled(False)
+
+    # [Event] Called when capture end button is clicked.
+    def button_end_capture(self):
+        self.capture.frame_end = self.media_player.position()
+
+        if self.capturing and self.capture.frame_start > self.capture.frame_end:
+            # Prevent capture from ending if frame end is earlier than start.
+            # TODO: Error message dialog or disable button
+            return
+
+        self.capturing = False
+        self.annotation_data.frames.append(
+            (self.capture.frame_start, self.capture.frame_end))
+        print('Captured frames:', self.annotation_data.frames)
+        self.button_cap_start.setEnabled(True)
+        self.button_cap_end.setEnabled(False)
+
+    # [Event] Called when manually moving seek slider in UI.
+    def seek_slider_position_changed(self, position):
         self.media_player.setPosition(position)
 
+    # [Event] Called when mediaplayer changed to playing or paused and vice versa.
     def media_state_changed(self, state):
         if state == QMediaPlayer.State.PlayingState:
             self.button_play.setIcon(
@@ -164,37 +201,27 @@ class Ui_MainWindow(QMainWindow):
                 self.style().standardIcon(QStyle.SP_MediaPlay))
             self.button_play.setText("Play")
 
-    def media_status_changed(self, status: QMediaPlayer.MediaStatus):
-        if status == QMediaPlayer.MediaStatus.LoadedMedia or status == QMediaPlayer.MediaStatus.BufferedMedia:
-            pass
+    # [Event] Called when status changes when loading new video.
+    # def media_status_changed(self, status: QMediaPlayer.MediaStatus):
+    #     if status == QMediaPlayer.MediaStatus.LoadedMedia or status == QMediaPlayer.MediaStatus.BufferedMedia:
+    #         pass
 
+    # [Event] Called every "notify interval" miliseconds when mediaplayer is playing.
     def media_position_changed(self, position):
+        # Update seek slider progress
         self.seek_slider.setValue(position)
-        self.label_video_position.setText(self.position_from_milisec(position))
+        # Update timestamp
+        self.label_video_position.setText(timestamp_from_milisec(position))
 
-    def position_from_milisec(self, ms):
-        seconds = (ms/1000) % 60
-        seconds = int(seconds)
-        minutes = (ms/(1000*60)) % 60
-        minutes = int(minutes)
-        hours = (ms/(1000*60*60)) % 24
-        if hours < 1:
-            return "%02d:%02d" % (minutes, seconds)
-        return "%02d:%02d:%02d" % (hours, minutes, seconds)
+        # When capturing, update enabled state of end capture button based on whether end frame is after start frame.
+        if self.capturing:
+            if self.capture.frame_start < self.media_player.position():
+                if not self.button_cap_end.isEnabled():
+                    self.button_cap_end.setEnabled(True)
+            else:
+                if self.button_cap_end.isEnabled():
+                    self.button_cap_end.setEnabled(False)
 
+    # [Event] Called when the total duration of the video changes, such as opening a new video file.
     def media_duration_changed(self, duration):
         self.seek_slider.setRange(0, duration)
-
-    def button_start_capture(self):
-        self.capturing = True
-        self.capture_start = self.media_player.position()
-        self.button_cap_start.setEnabled(False)
-        self.button_cap_end.setEnabled(True)
-
-    def button_end_capture(self):
-        self.capturing = True
-        self.capture_end = self.media_player.position()
-        self.captured_frames.append((self.capture_start, self.capture_end))
-        print(self.captured_frames)
-        self.button_cap_start.setEnabled(True)
-        self.button_cap_end.setEnabled(False)
