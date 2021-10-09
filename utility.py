@@ -5,7 +5,7 @@ import cv2
 
 def get_video_metadata(path) -> Tuple[int, Tuple[int, int], int]:
     cap = cv2.VideoCapture(path)
-    fps = cap.get(cv2.CAP_PROP_FPS)
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
     resolution = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
                   int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)

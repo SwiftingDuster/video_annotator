@@ -21,7 +21,7 @@ class VideoAnnotationData:
         self.frames: List[VideoAnnotationSegment] = []
 
     def frame_from_ms(self, ms: int):
-        ms_per_frame = int(1000 / self.fps)
+        ms_per_frame = 1000 / self.fps
         return ms // ms_per_frame
 
 

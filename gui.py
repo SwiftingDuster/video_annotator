@@ -2,7 +2,7 @@ from PyQt5.QtCore import (QAbstractItemModel, QCoreApplication, QDir,
                           QMetaObject, QRect, Qt, QUrl)
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaResource
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import (QAction, QFileDialog, QHBoxLayout, QItemDelegate,
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog, QHBoxLayout, QItemDelegate,
                              QLabel, QListView, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QPushButton,
                              QScrollArea, QSlider, QStatusBar, QStyle,
@@ -99,12 +99,14 @@ class Ui_MainWindow(QMainWindow):
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
 
-        # Setup default UI state
+        # Setup UI state
         self.label_video_position.setText("--:--")
         self.button_cap_start.setEnabled(False)
         self.button_cap_end.setEnabled(False)
         self.button_export.setEnabled(False)
         self.seek_slider.setEnabled(False)
+        self.listwidget_captures.setSelectionMode(
+            QAbstractItemView.SelectionMode.ExtendedSelection)
 
         # Internal data
         self.capturing = False
@@ -150,7 +152,7 @@ class Ui_MainWindow(QMainWindow):
     # [Event] Called when open file action is triggered.
     def action_open_file_clicked(self):
         file_path, _ = QFileDialog.getOpenFileName(
-            None, 'Open Image', '', 'Video Files (*.mp4)')
+            None, 'Open Image', QDir.homePath(), 'Video Files (*.mp4)')
         if file_path:
             self.media_player.setMedia(
                 QMediaContent(QUrl.fromLocalFile(file_path)))
@@ -190,15 +192,13 @@ class Ui_MainWindow(QMainWindow):
 
         if self.capturing and self.capture.frame_start_ms > self.capture.frame_end_ms:
             # Prevent capture from ending if frame end is earlier than start. (Dragging slider back)
-            # TODO: Error message dialog or disable button
             return
 
         self.annotation.frames.append(self.capture)
 
         # Update UI state
-        count = self.listwidget_captures.count() + 1
         self.__add_capture_segment(
-            count, self.capture.frame_start_ms, self.capture.frame_end_ms)
+            self.capture.frame_start_ms, self.capture.frame_end_ms)
         self.capturing = False
         self.button_cap_start.setEnabled(True)
         self.button_cap_end.setEnabled(False)
@@ -236,6 +236,7 @@ class Ui_MainWindow(QMainWindow):
 
         # When capturing, update enabled state of end capture button based on whether end frame is after start frame.
         if self.capturing:
+            # Prevent capture from ending if end frame is earlier than start. (Dragging slider back)
             if self.capture.frame_start_ms < self.media_player.position():
                 if not self.button_cap_end.isEnabled():
                     self.button_cap_end.setEnabled(True)
@@ -253,29 +254,48 @@ class Ui_MainWindow(QMainWindow):
     def listwidget_captures_contextmenu_open(self, pos):
         global_pos = self.listwidget_captures.mapToGlobal(pos)
 
-        def delete_selected():
-            items = self.listwidget_captures.selectedItems()
-            for i in items:
-                row = self.listwidget_captures.row(i)
-                self.listwidget_captures.takeItem(row)
-                # TODO: Remove segment from self.annotation
-
         context_actions = QMenu()
-        context_actions.addAction("Delete Selected", delete_selected)
+        context_actions.addAction("Play")
+        context_actions.addAction("Delete", self.__delete_selected_segments)
 
         context_actions.exec(global_pos)
 
-    def __add_capture_segment(self, number, frame_start_ms, frame_end_ms):
-        start = timestamp_from_ms(frame_start_ms, True)
-        end = timestamp_from_ms(frame_end_ms, True)
-        segment_text = "{0}: {1} - {2}".format(number, start, end)
+    def __delete_selected_segments(self):
+        items = self.listwidget_captures.selectedItems()
+        for item in items:
+            index = self.listwidget_captures.row(item)
+            self.__delete_segment(index)
+
+        self.__update_capture_segments()
+
+    def __delete_segment(self, index):
+        # Remove from UI
+        self.listwidget_captures.takeItem(index)
+        # Remove in captured frames too
+        self.annotation.frames.pop(index)
+
+    def __add_capture_segment(self, frame_start_ms, frame_end_ms):
+        count = self.listwidget_captures.count() + 1
+        time_start = timestamp_from_ms(frame_start_ms, True)
+        time_end = timestamp_from_ms(frame_end_ms, True)
+        frame_start = self.annotation.frame_from_ms(frame_start_ms)
+        frame_end = self.annotation.frame_from_ms(frame_end_ms)
+        segment_text = "{0}: Frames {1} - {2}".format(
+            count, frame_start, frame_end)
 
         seg_widget = CaptureSegmentWidget()
-        seg_widget.set_text(segment_text).set_subtext(
-            "Frames {0} to {1}".format(self.annotation.frame_from_ms(frame_start_ms), self.annotation.frame_from_ms(frame_end_ms)))
+        seg_widget.set_text(segment_text).set_subtext(time_start, time_end)
+        seg_widget.button_delete_clicked(self.__delete_selected_segments)
         listwidget_item = QListWidgetItem(self.listwidget_captures)
         listwidget_item.setSizeHint(seg_widget.sizeHint())
 
         self.listwidget_captures.addItem(listwidget_item)
         self.listwidget_captures.setItemWidget(
             listwidget_item, seg_widget)
+
+    def __update_capture_segments(self):
+        # Refresh listview
+        self.listwidget_captures.clear()
+        for f in self.annotation.frames:
+            self.__add_capture_segment(
+                f.frame_start_ms, f.frame_end_ms)
