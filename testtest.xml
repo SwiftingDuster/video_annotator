@@ -1,16 +1,21 @@
 <annotation>
 	<annotator>nameless</annotator>
 	<folder>File2</folder>
+	<filename>testtest.xml</filename>
 	<source>
 		<database>ImageNet database</database>
 	</source>
 	<size>
-		<width>200</width>
+		<width>100</width>
 		<height>222</height>
 		<depth>2</depth>
 	</size>
 	<video_resolution>1920x1020</video_resolution>
-	<segmented>0</segmented>
+	<segmented>segment1</segmented>
+	<segmented>segment2</segmented>
+	<segmented>segment3</segmented>
+	<segmented>segment4</segmented>
+	<segmented>segment5</segmented>
 	<object>
 		<name>testname</name>
 		<pose>Unspecified</pose>

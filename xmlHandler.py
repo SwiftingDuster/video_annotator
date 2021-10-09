@@ -3,13 +3,16 @@ from xml.dom import minidom
 
 class XMLhandler:
 
-    def __init__(self,filename,element,data):
+    def __init__(self,filename):
 
         self.filename=filename
-        self.element=element
-        self.data=data
 
-    def modifyXML(self):
+
+    #accepts element name and element value to be changed
+    #e.g. modifyXML(
+    def modifyXML(self,element,data):
+        self.element = element
+        self.data = data
         tree = ET.parse(self.filename)
 
         root = tree.getroot()
@@ -39,7 +42,7 @@ class XMLhandler:
 
 
     def GenerateXML(self,root_name,annotator_name,annotator_value,foldername,
-                    foldername_value,source,database_name,database_value,
+                    foldername_value,file_name,file_name_value,source,database_name,database_value,
                     size,width,width_value,
                     height,height_value,depth,depth_value,
                     video_resolution,video_resolution_value,
@@ -56,6 +59,8 @@ class XMLhandler:
         self.annotator_value=annotator_value
         self.foldername=foldername
         self.foldername_value=foldername_value
+        self.file_name=file_name
+        self.file_name_value=file_name_value
         self.source=source
         self.database_name=database_name
         self.database_value=database_value
@@ -102,6 +107,8 @@ class XMLhandler:
         annotator.text = self.annotator_value
         folderName = ET.SubElement(root, self.foldername)
         folderName.text = self.foldername_value
+        file_name = ET.SubElement(root, self.file_name)
+        file_name.text=self.filename
         source = ET.SubElement(root, self.source)
         database = ET.SubElement(source, self.database_name)
         database.text = self.database_value
@@ -114,8 +121,12 @@ class XMLhandler:
         depth.text = self.depth_value
         video_resolution=ET.SubElement(root,self.video_resolution)
         video_resolution.text=self.video_resolution_value
-        segmented = ET.SubElement(root, self.segmented)
-        segmented.text = self.segmented_value
+
+
+        #get list of segments
+        for item in range(len(self.segmented_value)):
+            segmented = ET.SubElement(root, self.segmented)
+            segmented.text = str(self.segmented_value[item])
         object = ET.SubElement(root, self.object)
         name = ET.SubElement(object, self.name)
         name.text = self.name_value
@@ -150,16 +161,19 @@ class XMLhandler:
 if __name__ == "__main__":
     #this is modify the xml: filename,element,data that you want to set
     #example: modifying foldername to file1
-    xmlinput=XMLhandler("testtest.xml","folder","test")
+    xmlinput=XMLhandler("testtest.xml")
 
     # if you want to generate a XML file structure
     # with dummy data, use the function below
+    #changed segmented to get a list
+    seg_list = ["segment1", "segment2",
+                  "segment3", "segment4", "segment5"]
     xmlinput.GenerateXML("annotation","annotator","nameless","folder",
-                    "File2","source","database","ImageNet database",
+                    "File2","filename","n000786","source","database","ImageNet database",
                     "size","width","200",
                     "height","222","depth","2",
                     "video_resolution","1920x1020",
-                    "segmented","0","object",
+                    "segmented",seg_list,"object",
                     "name","testname","pose","Unspecified","truncated",
                     "0","difficult","0",
                     "boundbox","xmin","160","ymin","50",
@@ -167,7 +181,9 @@ if __name__ == "__main__":
                     "s1Start","10","s1End","200")
 
     #calling the modifyXML to modify the xml element data
-    #xmlinput.modifyXML()
+    #modifying width to 100
+    #format: element_name,element_value
+    xmlinput.modifyXML("width","100")
 
 
 
