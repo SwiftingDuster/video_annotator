@@ -17,7 +17,7 @@
 	<segmented>segment4</segmented>
 	<segmented>segment5</segmented>
 	<object>
-		<name>testname</name>
+		<name>obj1</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -29,7 +29,7 @@
 		</boundbox>
 		<framedata>
 			<s1Start>10</s1Start>
-			<s1End>200</s1End>
+			<s1End>100</s1End>
 		</framedata>
 	</object>
 </annotation>
