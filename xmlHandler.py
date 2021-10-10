@@ -9,7 +9,7 @@ class XMLhandler:
 
 
     #accepts element name and element value to be changed
-    #e.g. modifyXML(
+
     def modifyXML(self,element,data):
         self.element = element
         self.data = data
@@ -82,7 +82,7 @@ class XMLhandler:
 
         #get list of segments
         for item in range(len(self.segmented_value)):
-            segmented = ET.SubElement(root, "segmented")
+            segmented = ET.SubElement(root, f"segmented{item+1}")
             segmented.text = str(self.segmented_value[item])
         object = ET.SubElement(root, "object")
         name = ET.SubElement(object, "name")
@@ -103,10 +103,16 @@ class XMLhandler:
         ymax = ET.SubElement(boundbox, "ymax")
         ymax.text = self.ymax_value
         framedata = ET.SubElement(object, "framedata")
-        s1Start = ET.SubElement(framedata, "s1Start")
-        s1Start.text = self.s1Start_value
-        s1End = ET.SubElement(framedata, "s1End")
-        s1End.text = self.s1End_value
+        #returns list of start frames and end frames
+        for item in range(len(self.s1Start_value)):
+            s1Start = ET.SubElement(framedata, f"s{item+1}Start")
+            s1Start.text = str(self.s1Start_value[item])
+            s1End = ET.SubElement(framedata, f"s{item+1}End")
+            s1End.text = str(self.s1End_value[item])
+
+
+
+
 
 
         # prettify the xml data
@@ -121,13 +127,15 @@ if __name__ == "__main__":
     # if you want to generate a XML file structure
     # with dummy data, use the function below
     #changed segmented to get a list
-    seg_list = ["segment1", "segment2",
-                  "segment3", "segment4", "segment5"]
+    seg_list = ["data1", "data2",
+                  "data3", "data4", "data5"]
+    startFramelist=["10","100","20","235"]
+    endFramelist=["12","15","22","33"]
     xmlinput.GenerateXML("nameless",
                     "File2","ImageNet database","200",
                     "222","2","1920x1020",
                     seg_list,"obj1","Unspecified",
-                    "0","0","160","50","200","130","10","100")
+                    "0","0","160","50","200","130",startFramelist,endFramelist)
 
     #calling the modifyXML to modify the xml element data
     #modifying width to 100

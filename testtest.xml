@@ -11,11 +11,11 @@
 		<depth>2</depth>
 	</size>
 	<video_resolution>1920x1020</video_resolution>
-	<segmented>segment1</segmented>
-	<segmented>segment2</segmented>
-	<segmented>segment3</segmented>
-	<segmented>segment4</segmented>
-	<segmented>segment5</segmented>
+	<segmented1>data1</segmented1>
+	<segmented2>data2</segmented2>
+	<segmented3>data3</segmented3>
+	<segmented4>data4</segmented4>
+	<segmented5>data5</segmented5>
 	<object>
 		<name>obj1</name>
 		<pose>Unspecified</pose>
@@ -29,7 +29,13 @@
 		</boundbox>
 		<framedata>
 			<s1Start>10</s1Start>
-			<s1End>100</s1End>
+			<s1End>12</s1End>
+			<s2Start>100</s2Start>
+			<s2End>15</s2End>
+			<s3Start>20</s3Start>
+			<s3End>22</s3End>
+			<s4Start>235</s4Start>
+			<s4End>33</s4End>
 		</framedata>
 	</object>
 </annotation>
