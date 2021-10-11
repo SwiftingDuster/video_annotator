@@ -1,11 +1,11 @@
-from PyQt5.QtCore import QCoreApplication, QDir, QMetaObject, QRect, Qt, QUrl
+from PyQt5.QtCore import QCoreApplication, QDir, QMetaObject, QRect, Qt, QUrl,QFileInfo
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtWidgets import (QAction, QFileDialog, QHBoxLayout, QLabel,
                              QMainWindow, QMenu, QMenuBar, QPushButton,
                              QScrollArea, QSlider, QStatusBar, QStyle,
-                             QTextEdit, QVBoxLayout, QWidget)
-
+                             QTextEdit, QVBoxLayout, QWidget,)
+from PyQt5 import QtPrintSupport
 
 class Ui_MainWindow(QMainWindow):
     def setupUi(self, MainWindow):
@@ -161,3 +161,12 @@ class Ui_MainWindow(QMainWindow):
 
     def setPosition(self, position):
         self.media_player.setPosition(position)
+
+
+    # def xmlExport(self):
+    #     fn,_=QFileDialog.getSaveFileName(self,"Export XML",None,"XML files (.xml); All files"):
+    #
+    #     if fn != '':
+    #         if QFileInfo(fn).suffix() == "": fn += '.xml'
+    #         printer=QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
+    #         printer.setOutputFormat(QtPrintSupport.QPrinter)
