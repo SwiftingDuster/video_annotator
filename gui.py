@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog, QHBoxLayou
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms
 from widgets.capture_segment_widget import CaptureSegmentWidget
-
+from agreementdialog import agreement_dialog
 
 class Ui_MainWindow(QMainWindow):
 
@@ -135,7 +135,7 @@ class Ui_MainWindow(QMainWindow):
         self.action_calc_agreement.setText(_translate("MainWindow", "Calculate..."))
         self.action_open_file.setToolTip(_translate(
             "MainWindow", "Open XML Files"))
-        self.action_open_file.setShortcut(_translate("MainWindow", "F2"))
+        self.action_calc_agreement.setShortcut(_translate("MainWindow", "F2"))
 
     def setupEvents(self):
         self.action_open_file.triggered.connect(self.action_open_file_clicked)
@@ -316,42 +316,6 @@ class Ui_MainWindow(QMainWindow):
 class createAgreementDialog(QDialog):
     def __init__(self,parent=None):
         super().__init__(parent)
-        self.ui = Agreement_Dialog()
+        self.ui = agreement_dialog()
         self.ui.setupUi(self)
-
-
-class Agreement_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(315, 263)
-        self.verticalLayout = QVBoxLayout(Dialog)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.listWidget = QListWidget(Dialog)
-        self.listWidget.setObjectName("listWidget")
-        self.verticalLayout.addWidget(self.listWidget)
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-
-        self.buttonAddFile = QPushButton(Dialog)
-        self.buttonAddFile.setObjectName("pushButton")
-        self.horizontalLayout_2.addWidget(self.buttonAddFile)
-
-        self.buttonCalculate = QPushButton(Dialog)
-        self.buttonCalculate.setObjectName("buttonCalculate")
-        self.horizontalLayout_2.addWidget(self.buttonCalculate)
-
-        self.buttonCancel = QPushButton(Dialog)
-        self.buttonCancel.setObjectName("buttonCancel")
-        self.horizontalLayout_2.addWidget(self.buttonCancel)
-
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
-
-        self.retranslateUi(Dialog)
-        QMetaObject.connectSlotsByName(Dialog)
-
-    def retranslateUi(self, Dialog):
-        _translate = QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.buttonAddFile.setText(_translate("Dialog", "Add File"))
-        self.buttonCalculate.setText(_translate("Dialog", "Calculate"))
-        self.buttonCancel.setText(_translate("Dialog", "Cancel"))
+        self.ui.sig_slot_link(self)

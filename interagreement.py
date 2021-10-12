@@ -3,10 +3,6 @@ from pygamma_agreement import Continuum, PositionalSporadicDissimilarity
 from pyannote.core import Segment
 import xml.etree.ElementTree as ET
 
-############################################################################
-# Important: add code to bring in xml files using UI (probably in main.py) #
-############################################################################
-
 # Initialize xmlCalc() class with input of a list of xml
 # .computeGamma() to calculate inter-annotator agreement
 # .annotationList to return list of annotations
