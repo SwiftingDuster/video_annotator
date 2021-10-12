@@ -73,6 +73,19 @@ class Ui_MainWindow(QMainWindow):
         self.seek_slider = QSlider(self.central_widget)
         self.seek_slider.setOrientation(Qt.Horizontal)
         self.lower_h_layout.addWidget(self.seek_slider)
+        # Volume slider
+        volume_box = QVBoxLayout()
+        volume_box.setContentsMargins(0, 0, 0, 10)
+        volume_box.addWidget(QLabel(alignment=Qt.AlignTop, text='Volume'))
+        self.volume_slider = QSlider(self.central_widget)
+        self.volume_slider.setOrientation(Qt.Vertical)
+        self.volume_slider.setMaximumSize(50, 60)
+        self.volume_slider.setRange(0, 100)
+        self.volume_slider.setValue(70)
+        self.lower_h_layout.addWidget(self.volume_slider)
+        volume_box.addWidget(self.volume_slider, alignment=Qt.AlignCenter)
+        self.lower_h_layout.addLayout(volume_box)
+
         # Capture start button
         self.button_cap_start = QPushButton(self.central_widget)
         self.lower_h_layout.addWidget(self.button_cap_start)
@@ -105,6 +118,7 @@ class Ui_MainWindow(QMainWindow):
         self.button_cap_end.setEnabled(False)
         self.button_export.setEnabled(False)
         self.seek_slider.setEnabled(False)
+        self.volume_slider.setEnabled(False)
         self.listwidget_captures.setSelectionMode(
             QAbstractItemView.SelectionMode.ExtendedSelection)
 
@@ -134,6 +148,7 @@ class Ui_MainWindow(QMainWindow):
         self.button_play.clicked.connect(self.button_play_clicked)
         self.seek_slider.sliderMoved.connect(
             self.seek_slider_position_changed)
+        self.volume_slider.sliderMoved.connect(self.volume_slider_position_changed)
         self.media_player.stateChanged.connect(self.media_state_changed)
         # self.media_player.mediaStatusChanged.connect(self.media_status_changed)
         self.media_player.positionChanged.connect(self.media_position_changed)
@@ -163,6 +178,7 @@ class Ui_MainWindow(QMainWindow):
             self.media_player.setVolume(100)
 
             self.seek_slider.setEnabled(True)
+            self.volume_slider.setEnabled(True)
             self.listwidget_captures.clear()
             # Init new video annotation data
             self.annotation = VideoAnnotationData(file_path)
@@ -219,6 +235,9 @@ class Ui_MainWindow(QMainWindow):
     # [Event] Called when manually moving seek slider in UI.
     def seek_slider_position_changed(self, position):
         self.media_player.setPosition(position)
+
+    def volume_slider_position_changed(self, position):
+        self.media_player.setVolume(position)
 
     # [Event] Called when mediaplayer changed to playing or paused and vice versa.
     def media_state_changed(self, state):
