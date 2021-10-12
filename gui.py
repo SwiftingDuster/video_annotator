@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms, write_annotator_xml
 from widgets.capture_segment_widget import CaptureSegmentWidget
+from agreementdialog import agreement_dialog
 from xmlHandler import XMLhandler
 
 
@@ -117,8 +118,6 @@ class Ui_MainWindow(QMainWindow):
         self.menu_file.addAction(self.action_open_file)
         self.menubar.addAction(self.menu_file.menuAction())
 
-<<<<<<< Updated upstream
-=======
         self.action_calc_agreement = QAction(MainWindow)
         self.menu_file.addAction(self.action_calc_agreement)
         self.menubar.addAction(self.menu_file.menuAction())
@@ -127,7 +126,6 @@ class Ui_MainWindow(QMainWindow):
         self.menu_file.addAction(self.about)
         self.menubar.addAction(self.menu_file.menuAction())
 
->>>>>>> Stashed changes
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
 
@@ -162,8 +160,14 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file.setShortcut(_translate("MainWindow", "F1"))
         self.about.setText(_translate("MainWindow", "About"))
 
+        self.action_calc_agreement.setText(_translate("MainWindow", "Calculate..."))
+        self.action_open_file.setToolTip(_translate(
+            "MainWindow", "Open XML Files"))
+        self.action_calc_agreement.setShortcut(_translate("MainWindow", "F2"))
+
     def setupEvents(self):
         self.action_open_file.triggered.connect(self.action_open_file_clicked)
+        self.action_calc_agreement.triggered.connect(self.on_menu_calc_click)
         self.about.triggered.connect(self.action_about_clicked)
 
         self.button_play.clicked.connect(self.button_play_clicked)
@@ -373,3 +377,14 @@ class Ui_MainWindow(QMainWindow):
         for f in self.annotation.frames:
             self.__add_capture_segment(
                 f.frame_start_ms, f.frame_end_ms)
+
+    def on_menu_calc_click(self):
+        dialog = createAgreementDialog(self)
+        dialog.exec()
+
+class createAgreementDialog(QDialog):
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.ui = agreement_dialog()
+        self.ui.setupUi(self)
+        self.ui.sig_slot_link(self)
