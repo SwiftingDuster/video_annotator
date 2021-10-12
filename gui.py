@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
                              QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QPushButton,
                              QSlider, QStatusBar, QStyle, QTextEdit,
-                             QVBoxLayout, QWidget)
+                             QVBoxLayout, QWidget, QMessageBox)
 
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms, write_annotator_xml
@@ -108,6 +108,9 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file = QAction(MainWindow)
         self.menu_file.addAction(self.action_open_file)
         self.menubar.addAction(self.menu_file.menuAction())
+        self.about = QAction(MainWindow)
+        self.menu_file.addAction(self.about)
+        self.menubar.addAction(self.menu_file.menuAction())
 
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
@@ -141,9 +144,11 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file.setToolTip(_translate(
             "MainWindow", "Open video file for annotation"))
         self.action_open_file.setShortcut(_translate("MainWindow", "F1"))
+        self.about.setText(_translate("MainWindow", "About"))
 
     def setupEvents(self):
         self.action_open_file.triggered.connect(self.action_open_file_clicked)
+        self.about.triggered.connect(self.action_about_clicked)
 
         self.button_play.clicked.connect(self.button_play_clicked)
         self.seek_slider.sliderMoved.connect(
@@ -185,6 +190,18 @@ class Ui_MainWindow(QMainWindow):
             # Set video info
             self.text_videoinfo.setText(
                 "Filename: {0}\nFPS: {1}\nResolution: {2}x{3}".format(self.annotation.filename, self.annotation.fps, self.annotation.resolution[0], self.annotation.resolution[1]))
+
+
+    def action_about_clicked(self):
+        about = QMessageBox()
+        about.setWindowTitle("About")
+        about.setInformativeText("")
+        about.setDetailedText("Python Team P8-53\nPython Video Annotator")
+        about.setText("Created By\n\nTan Jia Ding [2102238]\nWang Ting Wei [2101332]\nTam Wei Cheng [2100977]"
+                      "\nEric Cheong [2103020]\nDylan Teo [2101920]")
+
+        x = about.exec_()
+
 
     # [Event] Called when play/pause button is clicked.
     def button_play_clicked(self):
