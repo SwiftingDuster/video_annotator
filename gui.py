@@ -1,16 +1,16 @@
-from PyQt5.QtCore import (QAbstractItemModel, QCoreApplication, QDir,
-                          QMetaObject, QRect, Qt, QUrl)
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaResource
+from PyQt5.QtCore import QCoreApplication, QDir, QMetaObject, QRect, Qt, QUrl
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog, QHBoxLayout, QItemDelegate,
-                             QLabel, QListView, QListWidget, QListWidgetItem,
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
+                             QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QPushButton,
-                             QScrollArea, QSlider, QStatusBar, QStyle,
-                             QTextEdit, QVBoxLayout, QWidget)
+                             QSlider, QStatusBar, QStyle, QTextEdit,
+                             QVBoxLayout, QWidget)
 
 from models import VideoAnnotationData, VideoAnnotationSegment
-from utility import timestamp_from_ms
+from utility import timestamp_from_ms, write_annotator_xml
 from widgets.capture_segment_widget import CaptureSegmentWidget
+from xmlHandler import XMLhandler
 
 
 class Ui_MainWindow(QMainWindow):
@@ -139,8 +139,10 @@ class Ui_MainWindow(QMainWindow):
         self.media_player.positionChanged.connect(self.media_position_changed)
         self.media_player.durationChanged.connect(self.media_duration_changed)
 
-        self.button_cap_start.clicked.connect(self.button_start_capture)
-        self.button_cap_end.clicked.connect(self.button_end_capture)
+        self.button_cap_start.clicked.connect(
+            self.button_start_capture_clicked)
+        self.button_cap_end.clicked.connect(self.button_end_capture_clicked)
+        self.button_export.clicked.connect(self.button_export_clicked)
 
         self.listwidget_captures.setContextMenuPolicy(
             Qt.ContextMenuPolicy.CustomContextMenu)
@@ -148,11 +150,13 @@ class Ui_MainWindow(QMainWindow):
             self.listwidget_captures_contextmenu_open)
         self.listwidget_captures.model().rowsInserted.connect(
             self.listwidget_captures_row_inserted)
+        self.listwidget_captures.model().rowsRemoved.connect(
+            self.listwidget_captures_row_removed)
 
     # [Event] Called when open file action is triggered.
     def action_open_file_clicked(self):
         file_path, _ = QFileDialog.getOpenFileName(
-            None, 'Open Image', QDir.homePath(), 'Video Files (*.mp4)')
+            None, 'Open Video', QDir.homePath(), 'Video Files (*.mp4)')
         if file_path:
             self.media_player.setMedia(
                 QMediaContent(QUrl.fromLocalFile(file_path)))
@@ -179,15 +183,15 @@ class Ui_MainWindow(QMainWindow):
                 # Enable capture start button
                 self.button_cap_start.setEnabled(True)
 
-    # [Event] Called when capture start button is clicked.
-    def button_start_capture(self):
+    # [Event] Called when start capture button is clicked.
+    def button_start_capture_clicked(self):
         self.capturing = True
         start_ms = self.media_player.position()
         self.capture = VideoAnnotationSegment(start_ms, 0)
         self.button_cap_start.setEnabled(False)
 
-    # [Event] Called when capture end button is clicked.
-    def button_end_capture(self):
+    # [Event] Called when end capture button is clicked.
+    def button_end_capture_clicked(self):
         self.capture.frame_end_ms = self.media_player.position()
 
         if self.capturing and self.capture.frame_start_ms > self.capture.frame_end_ms:
@@ -202,6 +206,15 @@ class Ui_MainWindow(QMainWindow):
         self.capturing = False
         self.button_cap_start.setEnabled(True)
         self.button_cap_end.setEnabled(False)
+
+    # [Event] Called when export button is clicked.
+    def button_export_clicked(self):
+        # Write output to file
+        path, _ = QFileDialog.getSaveFileName(
+            None, 'Export PASCAL VOL', QDir.currentPath(), 'XML files (*.xml)')
+        # TODO: Implement export to XML
+        write_annotator_xml(self.annotation, path)
+        print('Exported XML to', path)
 
     # [Event] Called when manually moving seek slider in UI.
     def seek_slider_position_changed(self, position):
@@ -248,10 +261,19 @@ class Ui_MainWindow(QMainWindow):
     def media_duration_changed(self, duration):
         self.seek_slider.setRange(0, duration)
 
-    def listwidget_captures_row_inserted(self, item):
-        pass
+    def listwidget_captures_row_inserted(self, parent, first, last):
+        if self.listwidget_captures.count() > 0:
+            self.button_export.setEnabled(True)
+
+    def listwidget_captures_row_removed(self, parent, first, last):
+        if self.listwidget_captures.count() == 0:
+            self.button_export.setEnabled(False)
 
     def listwidget_captures_contextmenu_open(self, pos):
+        if self.listwidget_captures.itemAt(pos) == None:
+            # Right click outside a segment widget
+            return
+
         global_pos = self.listwidget_captures.mapToGlobal(pos)
 
         context_actions = QMenu()
@@ -285,7 +307,7 @@ class Ui_MainWindow(QMainWindow):
 
         seg_widget = CaptureSegmentWidget()
         seg_widget.set_text(segment_text).set_subtext(time_start, time_end)
-        seg_widget.button_delete_clicked(self.__delete_selected_segments)
+        # seg_widget.button_delete_clicked(self.__delete_selected_segments)
         listwidget_item = QListWidgetItem(self.listwidget_captures)
         listwidget_item.setSizeHint(seg_widget.sizeHint())
 
