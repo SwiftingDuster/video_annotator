@@ -73,18 +73,25 @@ class Ui_MainWindow(QMainWindow):
         self.seek_slider = QSlider(self.central_widget)
         self.seek_slider.setOrientation(Qt.Horizontal)
         self.lower_h_layout.addWidget(self.seek_slider)
-        # Volume slider
-        volume_box = QVBoxLayout()
-        volume_box.setContentsMargins(0, 0, 0, 10)
-        volume_box.addWidget(QLabel(alignment=Qt.AlignTop, text='Volume'))
+        # # Volume slider
+        # self.lower_h_layout.addWidget(QLabel(text='Volume -'))
+        # self.volume_slider = QSlider(self.central_widget)
+        # self.volume_slider.setOrientation(Qt.Horizontal)
+        # self.volume_slider.setMaximumSize(100, 20)
+        # self.volume_slider.setRange(0, 100)
+        # self.volume_slider.setValue(70)
+        # self.lower_h_layout.addWidget(self.volume_slider)
+        # self.lower_h_layout.addWidget(QLabel(text='+'))
+        vol_box = QVBoxLayout()
+        vol_box.addWidget(QLabel(alignment=Qt.AlignCenter, text='Volume'))
         self.volume_slider = QSlider(self.central_widget)
         self.volume_slider.setOrientation(Qt.Horizontal)
         self.volume_slider.setMaximumSize(100, 20)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(70)
-        self.lower_h_layout.addWidget(self.volume_slider)
-        volume_box.addWidget(self.volume_slider, alignment=Qt.AlignCenter)
-        self.lower_h_layout.addLayout(volume_box)
+        vol_box.addWidget(self.volume_slider, alignment=Qt.AlignCenter)
+        vol_box.addWidget(QLabel(alignment=Qt.AlignCenter, text='-                       +'))
+        self.lower_h_layout.addLayout(vol_box)
 
         # Capture start button
         self.button_cap_start = QPushButton(self.central_widget)
@@ -180,16 +187,16 @@ class Ui_MainWindow(QMainWindow):
         if file_path:
             self.media_player.setMedia(
                 QMediaContent(QUrl.fromLocalFile(file_path)))
-            self.media_player.setVolume(100)
 
             self.seek_slider.setEnabled(True)
-            self.volume_slider.setEnabled(True)
             self.listwidget_captures.clear()
             # Init new video annotation data
             self.annotation = VideoAnnotationData(file_path)
             # Set video info
             self.text_videoinfo.setText(
                 "Filename: {0}\nFPS: {1}\nResolution: {2}x{3}".format(self.annotation.filename, self.annotation.fps, self.annotation.resolution[0], self.annotation.resolution[1]))
+
+            self.volume_slider.setEnabled(True)
 
 
     def action_about_clicked(self):
