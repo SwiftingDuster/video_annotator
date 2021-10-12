@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog, QHBoxLayou
                              QLabel, QListView, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QPushButton,
                              QScrollArea, QSlider, QStatusBar, QStyle,
-                             QTextEdit, QVBoxLayout, QWidget)
+                             QTextEdit, QVBoxLayout, QWidget, QDialog)
 
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms
@@ -96,6 +96,10 @@ class Ui_MainWindow(QMainWindow):
         self.menu_file.addAction(self.action_open_file)
         self.menubar.addAction(self.menu_file.menuAction())
 
+        self.action_calc_agreement = QAction(MainWindow)
+        self.menu_file.addAction(self.action_calc_agreement)
+        self.menubar.addAction(self.menu_file.menuAction())
+
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
 
@@ -128,9 +132,14 @@ class Ui_MainWindow(QMainWindow):
             "MainWindow", "Open video file for annotation"))
         self.action_open_file.setShortcut(_translate("MainWindow", "F1"))
 
+        self.action_calc_agreement.setText(_translate("MainWindow", "Calculate..."))
+        self.action_open_file.setToolTip(_translate(
+            "MainWindow", "Open XML Files"))
+        self.action_open_file.setShortcut(_translate("MainWindow", "F2"))
+
     def setupEvents(self):
         self.action_open_file.triggered.connect(self.action_open_file_clicked)
-
+        self.action_calc_agreement.triggered.connect(self.on_menu_calc_click)
         self.button_play.clicked.connect(self.button_play_clicked)
         self.seek_slider.sliderMoved.connect(
             self.seek_slider_position_changed)
@@ -152,7 +161,7 @@ class Ui_MainWindow(QMainWindow):
     # [Event] Called when open file action is triggered.
     def action_open_file_clicked(self):
         file_path, _ = QFileDialog.getOpenFileName(
-            None, 'Open Image', QDir.homePath(), 'Video Files (*.mp4)')
+            None, 'Open Video', QDir.homePath(), 'Video Files (*.mp4)')
         if file_path:
             self.media_player.setMedia(
                 QMediaContent(QUrl.fromLocalFile(file_path)))
@@ -299,3 +308,50 @@ class Ui_MainWindow(QMainWindow):
         for f in self.annotation.frames:
             self.__add_capture_segment(
                 f.frame_start_ms, f.frame_end_ms)
+
+    def on_menu_calc_click(self):
+        dialog = createAgreementDialog(self)
+        dialog.exec()
+
+class createAgreementDialog(QDialog):
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.ui = Agreement_Dialog()
+        self.ui.setupUi(self)
+
+
+class Agreement_Dialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(315, 263)
+        self.verticalLayout = QVBoxLayout(Dialog)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.listWidget = QListWidget(Dialog)
+        self.listWidget.setObjectName("listWidget")
+        self.verticalLayout.addWidget(self.listWidget)
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+
+        self.buttonAddFile = QPushButton(Dialog)
+        self.buttonAddFile.setObjectName("pushButton")
+        self.horizontalLayout_2.addWidget(self.buttonAddFile)
+
+        self.buttonCalculate = QPushButton(Dialog)
+        self.buttonCalculate.setObjectName("buttonCalculate")
+        self.horizontalLayout_2.addWidget(self.buttonCalculate)
+
+        self.buttonCancel = QPushButton(Dialog)
+        self.buttonCancel.setObjectName("buttonCancel")
+        self.horizontalLayout_2.addWidget(self.buttonCancel)
+
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
+
+        self.retranslateUi(Dialog)
+        QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        _translate = QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        self.buttonAddFile.setText(_translate("Dialog", "Add File"))
+        self.buttonCalculate.setText(_translate("Dialog", "Calculate"))
+        self.buttonCancel.setText(_translate("Dialog", "Cancel"))
