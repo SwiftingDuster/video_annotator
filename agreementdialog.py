@@ -1,7 +1,6 @@
 # Dialog box for calculating agreement
 from PyQt5.QtCore import QCoreApplication, QMetaObject
 from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox
-from interagreement import xmlCalc
 
 class agreement_dialog(object):
     def setupUi(self, Dialog):
@@ -60,6 +59,7 @@ class agreement_dialog(object):
             self.listWidget.addItem(file)
 
     def run_calc(self):
+        from interagreement import xmlCalc
         filepaths=[]
         for i in range(self.listWidget.count()):
             pathitem = self.listWidget.item(i)

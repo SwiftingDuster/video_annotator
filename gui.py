@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
                              QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QPushButton,
                              QSlider, QStatusBar, QStyle, QTextEdit,
-                             QVBoxLayout, QWidget, QMessageBox)
+                             QVBoxLayout, QWidget, QMessageBox, QDialog)
 
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms, write_annotator_xml
