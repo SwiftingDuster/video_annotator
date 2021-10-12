@@ -47,8 +47,9 @@ class xmlCalc:
         # print(f"The gamma for that annotation is f{gamma_results.gamma}") old code
         return gamma_results.gamma
 
-xmlList = ["test1.xml", "test2.xml"]  # Store xml file names/dir as strings in list
-# Example print for illustration
-xmlData = xmlCalc(xmlList)
-print(xmlData.annotationList)
-print(xmlData.computeGamma())
+if __name__ == "__main__":
+    xmlList = ["test1.xml", "test2.xml"]  # Store xml file names/dir as strings in list
+    # Example print for illustration
+    xmlData = xmlCalc(xmlList)
+    print(xmlData.annotationList)
+    print(xmlData.computeGamma())
