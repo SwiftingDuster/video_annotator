@@ -1,17 +1,18 @@
-from PyQt5.QtCore import (QAbstractItemModel, QCoreApplication, QDir,
-                          QMetaObject, QRect, Qt, QUrl)
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaResource
+from PyQt5.QtCore import QCoreApplication, QDir, QMetaObject, QRect, Qt, QUrl
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog, QHBoxLayout, QItemDelegate,
-                             QLabel, QListView, QListWidget, QListWidgetItem,
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
+                             QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QPushButton,
-                             QScrollArea, QSlider, QStatusBar, QStyle,
-                             QTextEdit, QVBoxLayout, QWidget, QDialog)
+                             QSlider, QStatusBar, QStyle, QTextEdit,
+                             QVBoxLayout, QWidget, QMessageBox)
 
 from models import VideoAnnotationData, VideoAnnotationSegment
-from utility import timestamp_from_ms
+from utility import timestamp_from_ms, write_annotator_xml
 from widgets.capture_segment_widget import CaptureSegmentWidget
 from agreementdialog import agreement_dialog
+from xmlHandler import XMLhandler
+
 
 class Ui_MainWindow(QMainWindow):
 
@@ -73,6 +74,26 @@ class Ui_MainWindow(QMainWindow):
         self.seek_slider = QSlider(self.central_widget)
         self.seek_slider.setOrientation(Qt.Horizontal)
         self.lower_h_layout.addWidget(self.seek_slider)
+        # # Volume slider
+        # self.lower_h_layout.addWidget(QLabel(text='Volume -'))
+        # self.volume_slider = QSlider(self.central_widget)
+        # self.volume_slider.setOrientation(Qt.Horizontal)
+        # self.volume_slider.setMaximumSize(100, 20)
+        # self.volume_slider.setRange(0, 100)
+        # self.volume_slider.setValue(70)
+        # self.lower_h_layout.addWidget(self.volume_slider)
+        # self.lower_h_layout.addWidget(QLabel(text='+'))
+        vol_box = QVBoxLayout()
+        vol_box.addWidget(QLabel(alignment=Qt.AlignCenter, text='Volume'))
+        self.volume_slider = QSlider(self.central_widget)
+        self.volume_slider.setOrientation(Qt.Horizontal)
+        self.volume_slider.setMaximumSize(100, 20)
+        self.volume_slider.setRange(0, 100)
+        self.volume_slider.setValue(70)
+        vol_box.addWidget(self.volume_slider, alignment=Qt.AlignCenter)
+        vol_box.addWidget(QLabel(alignment=Qt.AlignCenter, text='-                       +'))
+        self.lower_h_layout.addLayout(vol_box)
+
         # Capture start button
         self.button_cap_start = QPushButton(self.central_widget)
         self.lower_h_layout.addWidget(self.button_cap_start)
@@ -95,6 +116,9 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file = QAction(MainWindow)
         self.menu_file.addAction(self.action_open_file)
         self.menubar.addAction(self.menu_file.menuAction())
+        self.about = QAction(MainWindow)
+        self.menu_file.addAction(self.about)
+        self.menubar.addAction(self.menu_file.menuAction())
 
         self.action_calc_agreement = QAction(MainWindow)
         self.menu_file.addAction(self.action_calc_agreement)
@@ -109,6 +133,7 @@ class Ui_MainWindow(QMainWindow):
         self.button_cap_end.setEnabled(False)
         self.button_export.setEnabled(False)
         self.seek_slider.setEnabled(False)
+        self.volume_slider.setEnabled(False)
         self.listwidget_captures.setSelectionMode(
             QAbstractItemView.SelectionMode.ExtendedSelection)
 
@@ -131,6 +156,7 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file.setToolTip(_translate(
             "MainWindow", "Open video file for annotation"))
         self.action_open_file.setShortcut(_translate("MainWindow", "F1"))
+        self.about.setText(_translate("MainWindow", "About"))
 
         self.action_calc_agreement.setText(_translate("MainWindow", "Calculate..."))
         self.action_open_file.setToolTip(_translate(
@@ -140,16 +166,21 @@ class Ui_MainWindow(QMainWindow):
     def setupEvents(self):
         self.action_open_file.triggered.connect(self.action_open_file_clicked)
         self.action_calc_agreement.triggered.connect(self.on_menu_calc_click)
+        self.about.triggered.connect(self.action_about_clicked)
+
         self.button_play.clicked.connect(self.button_play_clicked)
         self.seek_slider.sliderMoved.connect(
             self.seek_slider_position_changed)
+        self.volume_slider.sliderMoved.connect(self.volume_slider_position_changed)
         self.media_player.stateChanged.connect(self.media_state_changed)
         # self.media_player.mediaStatusChanged.connect(self.media_status_changed)
         self.media_player.positionChanged.connect(self.media_position_changed)
         self.media_player.durationChanged.connect(self.media_duration_changed)
 
-        self.button_cap_start.clicked.connect(self.button_start_capture)
-        self.button_cap_end.clicked.connect(self.button_end_capture)
+        self.button_cap_start.clicked.connect(
+            self.button_start_capture_clicked)
+        self.button_cap_end.clicked.connect(self.button_end_capture_clicked)
+        self.button_export.clicked.connect(self.button_export_clicked)
 
         self.listwidget_captures.setContextMenuPolicy(
             Qt.ContextMenuPolicy.CustomContextMenu)
@@ -157,6 +188,8 @@ class Ui_MainWindow(QMainWindow):
             self.listwidget_captures_contextmenu_open)
         self.listwidget_captures.model().rowsInserted.connect(
             self.listwidget_captures_row_inserted)
+        self.listwidget_captures.model().rowsRemoved.connect(
+            self.listwidget_captures_row_removed)
 
     # [Event] Called when open file action is triggered.
     def action_open_file_clicked(self):
@@ -165,7 +198,6 @@ class Ui_MainWindow(QMainWindow):
         if file_path:
             self.media_player.setMedia(
                 QMediaContent(QUrl.fromLocalFile(file_path)))
-            self.media_player.setVolume(100)
 
             self.seek_slider.setEnabled(True)
             self.listwidget_captures.clear()
@@ -174,6 +206,20 @@ class Ui_MainWindow(QMainWindow):
             # Set video info
             self.text_videoinfo.setText(
                 "Filename: {0}\nFPS: {1}\nResolution: {2}x{3}".format(self.annotation.filename, self.annotation.fps, self.annotation.resolution[0], self.annotation.resolution[1]))
+
+            self.volume_slider.setEnabled(True)
+
+
+    def action_about_clicked(self):
+        about = QMessageBox()
+        about.setWindowTitle("About")
+        about.setInformativeText("")
+        about.setDetailedText("Python Team P8-53\nPython Video Annotator")
+        about.setText("Created By\n\nTan Jia Ding [2102238]\nWang Ting Wei [2101332]\nTam Wei Cheng [2100977]"
+                      "\nEric Cheong [2103020]\nDylan Teo [2101920]")
+
+        x = about.exec_()
+
 
     # [Event] Called when play/pause button is clicked.
     def button_play_clicked(self):
@@ -188,15 +234,15 @@ class Ui_MainWindow(QMainWindow):
                 # Enable capture start button
                 self.button_cap_start.setEnabled(True)
 
-    # [Event] Called when capture start button is clicked.
-    def button_start_capture(self):
+    # [Event] Called when start capture button is clicked.
+    def button_start_capture_clicked(self):
         self.capturing = True
         start_ms = self.media_player.position()
         self.capture = VideoAnnotationSegment(start_ms, 0)
         self.button_cap_start.setEnabled(False)
 
-    # [Event] Called when capture end button is clicked.
-    def button_end_capture(self):
+    # [Event] Called when end capture button is clicked.
+    def button_end_capture_clicked(self):
         self.capture.frame_end_ms = self.media_player.position()
 
         if self.capturing and self.capture.frame_start_ms > self.capture.frame_end_ms:
@@ -212,9 +258,21 @@ class Ui_MainWindow(QMainWindow):
         self.button_cap_start.setEnabled(True)
         self.button_cap_end.setEnabled(False)
 
+    # [Event] Called when export button is clicked.
+    def button_export_clicked(self):
+        # Write output to file
+        path, _ = QFileDialog.getSaveFileName(
+            None, 'Export PASCAL VOL', QDir.currentPath(), 'XML files (*.xml)')
+        # TODO: Implement export to XML
+        write_annotator_xml(self.annotation, path)
+        print('Exported XML to', path)
+
     # [Event] Called when manually moving seek slider in UI.
     def seek_slider_position_changed(self, position):
         self.media_player.setPosition(position)
+
+    def volume_slider_position_changed(self, position):
+        self.media_player.setVolume(position)
 
     # [Event] Called when mediaplayer changed to playing or paused and vice versa.
     def media_state_changed(self, state):
@@ -257,10 +315,19 @@ class Ui_MainWindow(QMainWindow):
     def media_duration_changed(self, duration):
         self.seek_slider.setRange(0, duration)
 
-    def listwidget_captures_row_inserted(self, item):
-        pass
+    def listwidget_captures_row_inserted(self, parent, first, last):
+        if self.listwidget_captures.count() > 0:
+            self.button_export.setEnabled(True)
+
+    def listwidget_captures_row_removed(self, parent, first, last):
+        if self.listwidget_captures.count() == 0:
+            self.button_export.setEnabled(False)
 
     def listwidget_captures_contextmenu_open(self, pos):
+        if self.listwidget_captures.itemAt(pos) == None:
+            # Right click outside a segment widget
+            return
+
         global_pos = self.listwidget_captures.mapToGlobal(pos)
 
         context_actions = QMenu()
@@ -294,7 +361,7 @@ class Ui_MainWindow(QMainWindow):
 
         seg_widget = CaptureSegmentWidget()
         seg_widget.set_text(segment_text).set_subtext(time_start, time_end)
-        seg_widget.button_delete_clicked(self.__delete_selected_segments)
+        # seg_widget.button_delete_clicked(self.__delete_selected_segments)
         listwidget_item = QListWidgetItem(self.listwidget_captures)
         listwidget_item.setSizeHint(seg_widget.sizeHint())
 

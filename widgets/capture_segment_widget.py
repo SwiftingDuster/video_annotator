@@ -51,8 +51,8 @@ class CaptureSegmentWidget (QWidget):
         self.label_subtext2.setText(text2)
         return self
 
-    def button_play_clicked(self, handler: Callable[..., None]):
+    def button_play_clicked(self, handler: Callable[[bool], None]):
         self.button_play.clicked.connect(handler)
 
-    def button_delete_clicked(self, handler: Callable[..., None]):
+    def button_delete_clicked(self, handler: Callable[[bool], None]):
         self.button_delete.clicked.connect(handler)

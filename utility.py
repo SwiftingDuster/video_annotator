@@ -2,6 +2,8 @@ from typing import Tuple
 
 import cv2
 
+from xmlHandler import XMLhandler
+
 
 def get_video_metadata(path) -> Tuple[int, Tuple[int, int], int]:
     cap = cv2.VideoCapture(path)
@@ -28,3 +30,19 @@ def timestamp_from_ms(ms, show_milisecs=False):
         if minutes < 1:
             return "%02ds:%03dms" % (seconds, milisecs)
         return "%02dm:%02ds:%03dms" % (minutes, seconds, milisecs)
+
+
+def write_annotator_xml(annotation, file_path):
+    # xml = XMLhandler(annotation.filename).GenerateXML("Video Annotator", annotation.foldername,
+    #                                                   "Database", annotation.resolution[
+    #                                                       0], annotation.resolution[1], 0, 'Resolution',
+    #                                                   'Segmented',
+    #                                                   'Name',
+    #                                                   'Pose',
+    #                                                   'Truncated',
+    #                                                   'Difficult',
+    #                                                   'xmin', 'ymin', 'xmax', 'ymax', 's1start', 's1end')
+    # with open(file_path, 'w') as f:
+    #     f.write(xml)
+    #     f.close()
+    pass

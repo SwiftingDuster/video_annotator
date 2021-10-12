@@ -22,7 +22,7 @@ class VideoAnnotationData:
 
     def frame_from_ms(self, ms: int):
         ms_per_frame = 1000 / self.fps
-        return ms // ms_per_frame
+        return int(ms / ms_per_frame)
 
 
 @dataclass
