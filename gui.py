@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
                              QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QPushButton,
                              QSlider, QStatusBar, QStyle, QTextEdit,
-                             QVBoxLayout, QWidget, QMessageBox)
+                             QVBoxLayout, QWidget, QMessageBox, QDialog)
 
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms, write_annotator_xml
@@ -106,6 +106,7 @@ class Ui_MainWindow(QMainWindow):
         self.vertical_layout.addLayout(self.lower_h_layout)
         MainWindow.setCentralWidget(self.central_widget)
 
+        # Menu Bar
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setGeometry(QRect(0, 0, 1280, 26))
         self.menu_file = QMenu(self.menubar)
@@ -115,10 +116,18 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file = QAction(MainWindow)
         self.menu_file.addAction(self.action_open_file)
         self.menubar.addAction(self.menu_file.menuAction())
+
+<<<<<<< Updated upstream
+=======
+        self.action_calc_agreement = QAction(MainWindow)
+        self.menu_file.addAction(self.action_calc_agreement)
+        self.menubar.addAction(self.menu_file.menuAction())
+
         self.about = QAction(MainWindow)
         self.menu_file.addAction(self.about)
         self.menubar.addAction(self.menu_file.menuAction())
 
+>>>>>>> Stashed changes
         self.retranslateUi(MainWindow)
         QMetaObject.connectSlotsByName(MainWindow)
 
