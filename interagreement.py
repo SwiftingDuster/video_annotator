@@ -19,7 +19,8 @@ class xmlCalc:
         for i in range(len(xmlFileIn)):
             tree = ET.parse(xmlFileIn[i])
             root = tree.getroot()
-            annotator = root.find("annotator").text
+            #annotator = root.find("annotator").text
+            filepath = xmlFileIn[i]
             for framedata in root.iter("framedata"):
                 k = 0
                 for f in framedata.iter():
@@ -28,7 +29,7 @@ class xmlCalc:
                 for l in range(k):
                     framestart = int(framedata.find(fstartstring).text)
                     frameend = int(framedata.find(fendstring).text)
-                    annotationList.append([annotator, f"Annotation {j}", framestart, frameend])
+                    annotationList.append([filepath, f"Annotation {j}", framestart, frameend])
                     j += 1
         return annotationList
 

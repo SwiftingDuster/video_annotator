@@ -144,7 +144,7 @@ class Ui_MainWindow(QMainWindow):
 
     def retranslateUi(self, MainWindow):
         _translate = QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Video Annotator"))
         self.label_videoinfo.setText(
             _translate("MainWindow", "Video Information"))
         self.label_events.setText(_translate("MainWindow", "Capture Frames"))
