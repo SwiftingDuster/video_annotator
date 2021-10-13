@@ -213,7 +213,7 @@ class Ui_MainWindow(QMainWindow):
         path, _ = QFileDialog.getSaveFileName(
             None, 'Export PASCAL VOL', QDir.currentPath(), 'XML files (*.xml)')
         # TODO: Implement export to XML
-        write_annotator_xml(self.annotation, path)
+        write_annotator_xml(self.annotation,path)
         print('Exported XML to', path)
 
     # [Event] Called when manually moving seek slider in UI.
