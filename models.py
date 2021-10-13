@@ -20,6 +20,7 @@ class VideoAnnotationData:
         self.fps, self.resolution, _ = get_video_metadata(full_path)
         self.frames: List[VideoAnnotationSegment] = []
 
+            
     def frame_from_ms(self, ms: int):
         ms_per_frame = 1000 / self.fps
         return int(ms / ms_per_frame)

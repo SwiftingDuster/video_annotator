@@ -32,17 +32,12 @@ def timestamp_from_ms(ms, show_milisecs=False):
         return "%02dm:%02ds:%03dms" % (minutes, seconds, milisecs)
 
 
-def write_annotator_xml(annotation, file_path):
-    # xml = XMLhandler(annotation.filename).GenerateXML("Video Annotator", annotation.foldername,
-    #                                                   "Database", annotation.resolution[
-    #                                                       0], annotation.resolution[1], 0, 'Resolution',
-    #                                                   'Segmented',
-    #                                                   'Name',
-    #                                                   'Pose',
-    #                                                   'Truncated',
-    #                                                   'Difficult',
-    #                                                   'xmin', 'ymin', 'xmax', 'ymax', 's1start', 's1end')
-    # with open(file_path, 'w') as f:
-    #     f.write(xml)
-    #     f.close()
-    pass
+def write_annotator_xml(annotation,file_path):
+    xmlinput=XMLhandler(annotation.filename,file_path)
+    xmlinput.GenerateXML("Annotation","Video Annotator",annotation.foldername,
+                                                    str(annotation.resolution[0]),str(annotation.resolution[1]),
+                                                    f"{annotation.resolution[0]}x{annotation.resolution[1]}",
+                         str(annotation.fps),annotation.frames)
+
+
+
