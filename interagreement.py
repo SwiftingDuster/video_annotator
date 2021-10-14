@@ -37,9 +37,9 @@ class xmlCalc:
         annotationList = self.annotationList
         continuum = Continuum()  # add annotation data to continuum
         for x in annotationList:
-            continuum.add(x[0], Segment(x[2], x[3]), "")
+            continuum.add(x[0], Segment(x[2], x[3]), '')
         dissim = PositionalSporadicDissimilarity(delta_empty=1.0)
-        gamma_results = continuum.compute_gamma(dissim)  # output final gamma val
+        gamma_results = continuum.compute_gamma(dissim, precision_level=0.2, fast=True)  # output final gamma val
         # print(f"The gamma for that annotation is f{gamma_results.gamma}") old code
         return gamma_results.gamma
 
