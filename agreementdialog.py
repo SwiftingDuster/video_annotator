@@ -2,6 +2,7 @@
 from PyQt5.QtCore import QCoreApplication, QMetaObject
 from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox
 
+
 class agreement_dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
