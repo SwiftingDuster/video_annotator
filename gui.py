@@ -62,6 +62,12 @@ class Ui_MainWindow(QMainWindow):
 
         # == Media Controls and Buttons ==
         self.lower_h_layout = QHBoxLayout()
+        # Prev Button
+        self.button_prev = QPushButton(self.central_widget)
+        self.lower_h_layout.addWidget(self.button_prev)
+        # Next Button
+        self.button_next = QPushButton(self.central_widget)
+        self.lower_h_layout.addWidget(self.button_next)
         # Play button
         self.button_play = QPushButton(self.central_widget)
         self.button_play.setIcon(
@@ -131,6 +137,8 @@ class Ui_MainWindow(QMainWindow):
 
         # Setup UI state
         self.label_video_position.setText("--:--")
+        self.button_prev.setEnabled(False)
+        self.button_next.setEnabled(False)
         self.button_cap_start.setEnabled(False)
         self.button_cap_end.setEnabled(False)
         self.button_export.setEnabled(False)
@@ -149,9 +157,16 @@ class Ui_MainWindow(QMainWindow):
             _translate("MainWindow", "Video Information"))
         self.label_events.setText(_translate("MainWindow", "Capture Frames"))
         self.button_cap_start.setText(
-            _translate("MainWindow", "Capture Start"))
-        self.button_cap_end.setText(_translate("MainWindow", "Capture End"))
+            _translate("MainWindow", "Capture Start (Z)"))
+        self.button_cap_start.setShortcut(_translate("MainWindow", "Z"))
+        self.button_cap_end.setText(_translate("MainWindow", "Capture End (X)"))
+        self.button_cap_end.setShortcut(_translate("MainWindow", "X"))
+        self.button_prev.setText(_translate("MainWindow", "Prev (N)"))
+        self.button_prev.setShortcut(_translate("MainWindow", "N"))
+        self.button_next.setText(_translate("MainWindow", "Next (M)"))
+        self.button_next.setShortcut(_translate("MainWindow", "M"))
         self.button_play.setText(_translate("MainWindow", "Play"))
+        self.button_play.setShortcut(_translate("MainWindow", "Space"))
         self.button_export.setText(_translate("MainWindow", "Export..."))
         self.menu_file.setTitle(_translate("MainWindow", "File"))
         self.action_open_file.setText(_translate("MainWindow", "Open File..."))
@@ -170,6 +185,8 @@ class Ui_MainWindow(QMainWindow):
         self.action_calc_agreement.triggered.connect(self.on_menu_calc_click)
         self.about.triggered.connect(self.action_about_clicked)
 
+        self.button_prev.clicked.connect(self.button_prev_clicked)
+        self.button_next.clicked.connect(self.button_next_clicked)
         self.button_play.clicked.connect(self.button_play_clicked)
         self.seek_slider.sliderMoved.connect(
             self.seek_slider_position_changed)
@@ -210,6 +227,10 @@ class Ui_MainWindow(QMainWindow):
                 "Filename: {0}\nFPS: {1}\nResolution: {2}x{3}".format(self.annotation.filename, self.annotation.fps, self.annotation.resolution[0], self.annotation.resolution[1]))
 
             self.volume_slider.setEnabled(True)
+            self.button_prev.setEnabled(True)
+            self.button_next.setEnabled(True)
+            self.frametime = 1/self.annotation.fps
+
 
 
     def action_about_clicked(self):
@@ -235,6 +256,12 @@ class Ui_MainWindow(QMainWindow):
             if not self.capturing:
                 # Enable capture start button
                 self.button_cap_start.setEnabled(True)
+
+    def button_prev_clicked(self):
+        self.media_player.setPosition(self.media_player.position()-(4/self.frametime))
+
+    def button_next_clicked(self):
+        self.media_player.setPosition(self.media_player.position()+(4/self.frametime))
 
     # [Event] Called when start capture button is clicked.
     def button_start_capture_clicked(self):
