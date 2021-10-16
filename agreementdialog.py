@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, 
 class agreement_dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(315, 263)
+        Dialog.resize(200, 150)
         self.verticalLayout = QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.listWidget = QListWidget(Dialog)

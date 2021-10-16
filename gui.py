@@ -116,12 +116,13 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file = QAction(MainWindow)
         self.menu_file.addAction(self.action_open_file)
         self.menubar.addAction(self.menu_file.menuAction())
-        self.about = QAction(MainWindow)
-        self.menu_file.addAction(self.about)
-        self.menubar.addAction(self.menu_file.menuAction())
 
         self.action_calc_agreement = QAction(MainWindow)
         self.menu_file.addAction(self.action_calc_agreement)
+        self.menubar.addAction(self.menu_file.menuAction())
+
+        self.about = QAction(MainWindow)
+        self.menu_file.addAction(self.about)
         self.menubar.addAction(self.menu_file.menuAction())
 
         self.retranslateUi(MainWindow)
