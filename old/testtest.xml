@@ -1,0 +1,21 @@
+<Annotation>
+	<annotator>Video Annotator</annotator>
+	<folder>File2</folder>
+	<filename>testtest.xml</filename>
+	<source>
+		<database />
+	</source>
+	<size>
+		<width>1920</width>
+		<height>1020</height>
+		<depth />
+	</size>
+	<video_resolution>1920x1020</video_resolution>
+	<fps>FPS</fps>
+	<segmented1>data1</segmented1>
+	<segmented2>data2</segmented2>
+	<segmented3>data3</segmented3>
+	<segmented4>data4</segmented4>
+	<segmented5>data5</segmented5>
+	<object />
+</Annotation>
