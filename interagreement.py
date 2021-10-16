@@ -14,23 +14,23 @@ class xmlCalc:
     def xml_to_list(self, xmlFileIn):
         annotationList = []
         j = 1
-        fstartstring = f's{j}Start'
-        fendstring = f's{j}End'
+        fstartstring = 'start'
+        fendstring = 'end'
         for i in range(len(xmlFileIn)):
             tree = ET.parse(xmlFileIn[i])
             root = tree.getroot()
             #annotator = root.find("annotator").text
             filepath = xmlFileIn[i]
-            for framedata in root.iter("framedata"):
-                k = 0
-                for f in framedata.iter():
-                    if f != framedata:
+            for segment in root.iter("segment"):
+                '''k = 0
+                for f in segment.iter():
+                    if f != segment:
                         k += 1
-                for l in range(k):
-                    framestart = int(framedata.find(fstartstring).text)
-                    frameend = int(framedata.find(fendstring).text)
-                    annotationList.append([filepath, f"Annotation {j}", framestart, frameend])
-                    j += 1
+                for l in range(k):'''
+                framestart = int(segment.find(fstartstring).text)
+                frameend = int(segment.find(fendstring).text)
+                annotationList.append([filepath, f"Annotation {j}", framestart, frameend])
+                j += 1
         return annotationList
 
     # Function to calculate gamma for inter-annotator agreement. Gamma closer to 1 = higher agreement
