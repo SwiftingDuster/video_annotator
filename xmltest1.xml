@@ -12,11 +12,19 @@
 	</size>
 	<video_resolution>1920x1000</video_resolution>
 	<fps>60</fps>
-	<segments1>VideoAnnotationSegment(frame_start_ms=531, frame_end_ms=1007)<segment />
-	</segments1>
-	<segments2>VideoAnnotationSegment(frame_start_ms=1653, frame_end_ms=2086)<segment />
-	</segments2>
-	<segments3>VideoAnnotationSegment(frame_start_ms=2582, frame_end_ms=3006)<segment />
-	</segments3>
+	<segments>
+		<segment>
+			<start>2117</start>
+			<end>2622</end>
+		</segment>
+		<segment>
+			<start>3212</start>
+			<end>3695</end>
+		</segment>
+		<segment>
+			<start>581</start>
+			<end>980</end>
+		</segment>
+	</segments>
 	<object />
 </Annotation>

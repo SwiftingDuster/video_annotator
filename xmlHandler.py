@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-
+from models import *
 
 
 class XMLhandler:
@@ -90,12 +90,37 @@ class XMLhandler:
         fps.text=self.fps_value
 
         #get list of segments
-        for item in range(len(self.segmented_value)):
-            segments = ET.SubElement(root, f"segments{item+1}")
-            segments.text = str(self.segmented_value[item])
+
+        segments = ET.SubElement(root, f"segments")
+
+        for item in self.segmented_value:
+
+            start,end=item.frame_start_ms,\
+                      item.frame_end_ms
+
+
             segment=ET.SubElement(segments,f"segment")
+            framestart=ET.SubElement(segment,"start")
+            framestart.text=str(start)
+            frameend=ET.SubElement(segment,"end")
+            frameend.text=str(end)
 
+            # for item in range(len(self.segmented_value)):
+            #     segmented = ET.SubElement(root, f"segmented{item + 1}")
+            #     segmented.text = str(self.segmented_value[item])
+            #segment.text = str(self.segmented_value[item])
+            # segmentStart=ET.SubElement(segment,"Start")
+            # segmentStart.text=self.segmented_value[item]
 
+            # for item in self.segmented_value:
+            #     start, end = item.frame_start_ms, \
+            #                  item.frame_end_ms
+            #
+            #     segment = ET.SubElement(segments, f"segment")
+            #     framestart = ET.SubElement(segment, "start")
+            #     framestart.text = str(start)
+            #     frameend = ET.SubElement(segment, "end")
+            #     frameend.text = str(end)
 
         object = ET.SubElement(root, "object")
         #name = ET.SubElement(object, "name")
@@ -142,7 +167,7 @@ class XMLhandler:
 
 if __name__ == "__main__":
     #example: modifying foldername to file1
-    #xmlinput=XMLhandler("testxml.xml")
+    xmlinput=XMLhandler("testxml.xml")
 
     # if you want to generate a XML file structure
     # with dummy data, use the function below

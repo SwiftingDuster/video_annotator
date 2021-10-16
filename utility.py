@@ -1,8 +1,10 @@
+import typing
 from typing import Tuple
 
 import cv2
 
 from xmlHandler import XMLhandler
+
 
 
 def get_video_metadata(path) -> Tuple[int, Tuple[int, int], int]:
