@@ -107,6 +107,7 @@ class Ui_MainWindow(QMainWindow):
         self.vertical_layout.addLayout(self.lower_h_layout)
         MainWindow.setCentralWidget(self.central_widget)
 
+        # Menu Bar
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setGeometry(QRect(0, 0, 1280, 26))
         self.menu_file = QMenu(self.menubar)
@@ -143,7 +144,7 @@ class Ui_MainWindow(QMainWindow):
 
     def retranslateUi(self, MainWindow):
         _translate = QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Video Annotator"))
         self.label_videoinfo.setText(
             _translate("MainWindow", "Video Information"))
         self.label_events.setText(_translate("MainWindow", "Capture Frames"))
@@ -265,7 +266,7 @@ class Ui_MainWindow(QMainWindow):
         path, _ = QFileDialog.getSaveFileName(
             None, 'Export PASCAL VOL', QDir.currentPath(), 'XML files (*.xml)')
         # TODO: Implement export to XML
-        write_annotator_xml(self.annotation, path)
+        write_annotator_xml(self.annotation,path)
         print('Exported XML to', path)
 
     # [Event] Called when manually moving seek slider in UI.

@@ -1,0 +1,30 @@
+<Annotation>
+	<annotator>Video Annotator</annotator>
+	<folder>C:/Users/kagur/Videos</folder>
+	<filename>test.mp4</filename>
+	<source>
+		<database />
+	</source>
+	<size>
+		<width>1920</width>
+		<height>1000</height>
+		<depth />
+	</size>
+	<video_resolution>1920x1000</video_resolution>
+	<fps>60</fps>
+	<segments>
+		<segment>
+			<start>2117</start>
+			<end>2622</end>
+		</segment>
+		<segment>
+			<start>3212</start>
+			<end>3695</end>
+		</segment>
+		<segment>
+			<start>581</start>
+			<end>980</end>
+		</segment>
+	</segments>
+	<object />
+</Annotation>
