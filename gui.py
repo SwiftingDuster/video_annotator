@@ -229,8 +229,6 @@ class Ui_MainWindow(QMainWindow):
             self.volume_slider.setEnabled(True)
             self.button_prev.setEnabled(True)
             self.button_next.setEnabled(True)
-            self.frametime = 1/self.annotation.fps
-
 
 
     def action_about_clicked(self):
@@ -258,10 +256,10 @@ class Ui_MainWindow(QMainWindow):
                 self.button_cap_start.setEnabled(True)
 
     def button_prev_clicked(self):
-        self.media_player.setPosition(self.media_player.position()-(4/self.frametime))
+        self.media_player.setPosition(self.media_player.position()-150)
 
     def button_next_clicked(self):
-        self.media_player.setPosition(self.media_player.position()+(4/self.frametime))
+        self.media_player.setPosition(self.media_player.position()+150)
 
     # [Event] Called when start capture button is clicked.
     def button_start_capture_clicked(self):

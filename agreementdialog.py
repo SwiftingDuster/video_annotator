@@ -47,8 +47,11 @@ class agreement_dialog(object):
         self.listWidget.itemDoubleClicked.connect(self.listRemoveItem)
 
     def listRemoveItem(self):
+        self.xmlfilepaths.pop(self.listWidget.currentRow())
+        print(self.listWidget.currentRow())
         self.listWidget.takeItem(self.listWidget.currentRow())
-
+        print(self.listWidget.currentRow())
+    # Add annotation file to list widget
     def add_annoxml(self):
         filters = ['XML files(*.xml)','All files(*)']
         choosedialog = QFileDialog(None)
@@ -60,7 +63,7 @@ class agreement_dialog(object):
         for file in filepaths:
             self.xmlfilepaths.append(file)
             self.listWidget.addItem(self.getFileName(file))
-
+    # Message generator
     def genMessage(self, title = 'Message', content = ''):
         messagebox = QMessageBox()
         messagebox.setWindowTitle(title)
@@ -74,7 +77,7 @@ class agreement_dialog(object):
                 i-=1
             else:
                 return path[i+1:]
-
+    # function to start calculation
     def run_calc(self):
         numOfFiles = self.listWidget.count()
         if numOfFiles > 1:
