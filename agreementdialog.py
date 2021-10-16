@@ -30,10 +30,11 @@ class agreement_dialog(object):
 
         self.retranslateUi(Dialog)
         QMetaObject.connectSlotsByName(Dialog)
+        self.xmlfilepaths = []
 
     def retranslateUi(self, Dialog):
         _translate = QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Inter-Annotator Agreement"))
         self.buttonAddFile.setText(_translate("Dialog", "Add File"))
         self.buttonCalculate.setText(_translate("Dialog", "Calculate"))
         self.buttonCancel.setText(_translate("Dialog", "Cancel"))
@@ -47,8 +48,8 @@ class agreement_dialog(object):
     def listRemoveItem(self):
         self.listWidget.takeItem(self.listWidget.currentRow())
 
-    def add_annoxml(self,Dialog):
-        filters = ['XML files(*.xml)','Any files(*)']
+    def add_annoxml(self):
+        filters = ['XML files(*.xml)','All files(*)']
         choosedialog = QFileDialog(None)
         choosedialog.setFileMode(QFileDialog.ExistingFiles)
         choosedialog.setViewMode(QFileDialog.Detail)
@@ -56,17 +57,37 @@ class agreement_dialog(object):
         choosedialog.exec()
         filepaths = choosedialog.selectedFiles()
         for file in filepaths:
-            self.listWidget.addItem(file)
+            self.xmlfilepaths.append(file)
+            self.listWidget.addItem(self.getFileName(file))
+
+    def genMessage(self, title = 'Message', content = ''):
+        messagebox = QMessageBox()
+        messagebox.setWindowTitle(title)
+        messagebox.setText(content)
+        messagebox.exec()
+
+    def getFileName(self,path):
+        i=-1
+        while True:
+            if path[i]!='/':
+                i-=1
+            else:
+                return path[i+1:]
 
     def run_calc(self):
-        from interagreement import xmlCalc
-        filepaths=[]
-        for i in range(self.listWidget.count()):
-            pathitem = self.listWidget.item(i)
-            pathstr = pathitem.text()
-            filepaths.append(pathstr)
-        annoData = xmlCalc(filepaths)
-        gammaval = annoData.computeGamma()
-        messagebox = QMessageBox()
-        messagebox.setText(f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
-        messagebox.exec()
+        numOfFiles = self.listWidget.count()
+        if numOfFiles > 1:
+            import interagreement
+            '''filepaths=[]
+            for i in range(self.listWidget.count()):
+                pathitem = self.listWidget.item(i)
+                pathstr = pathitem.text()
+                filepaths.append(pathstr)'''
+            try:
+                annoData = interagreement.xmlCalc(self.xmlfilepaths)
+                gammaval = annoData.computeGamma()
+                self.genMessage('Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
+            except:
+                self.genMessage('Error', 'Error: Please check input files')
+        else:
+            self.genMessage('Error', 'Error: Please add at least 2 input files')

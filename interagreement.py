@@ -19,7 +19,8 @@ class xmlCalc:
         for i in range(len(xmlFileIn)):
             tree = ET.parse(xmlFileIn[i])
             root = tree.getroot()
-            annotator = root.find("annotator").text
+            #annotator = root.find("annotator").text
+            filepath = xmlFileIn[i]
             for framedata in root.iter("framedata"):
                 k = 0
                 for f in framedata.iter():
@@ -28,7 +29,7 @@ class xmlCalc:
                 for l in range(k):
                     framestart = int(framedata.find(fstartstring).text)
                     frameend = int(framedata.find(fendstring).text)
-                    annotationList.append([annotator, f"Annotation {j}", framestart, frameend])
+                    annotationList.append([filepath, f"Annotation {j}", framestart, frameend])
                     j += 1
         return annotationList
 
@@ -42,6 +43,23 @@ class xmlCalc:
         gamma_results = continuum.compute_gamma(dissim, precision_level=0.2, fast=True)  # output final gamma val
         # print(f"The gamma for that annotation is f{gamma_results.gamma}") old code
         return gamma_results.gamma
+
+    def dumbsearch(self, inlist):
+        j=0
+        framepair=['','']
+        strlen=len(inlist)
+        for i in range(strlen-1):
+            if inlist[i].isdigit and inlist[i+1].isdigit:
+                if framepair[j]=='':
+                    framepair[j]+=inlist[i]+inlist[i+1]
+                framepair[j]+=inlist[i+1]
+            elif inlist[i].isdigit and not inlist[i+1].isdigit:
+                if j==0:
+                    j=1
+        return framepair
+
+        pass
+
 
 if __name__ == "__main__":
     xmlList = ["test1.xml", "test2.xml"]  # Store xml file names/dir as strings in list
