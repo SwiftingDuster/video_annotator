@@ -14,380 +14,208 @@
 	<fps>25</fps>
 	<segments>
 		<segment>
-			<start>98350</start>
-			<end>100454</end>
+			<start>61970</start>
+			<end>63170</end>
 		</segment>
 		<segment>
-			<start>115887</start>
-			<end>116773</end>
+			<start>98420</start>
+			<end>100970</end>
 		</segment>
 		<segment>
-			<start>126161</start>
-			<end>128154</end>
+			<start>116270</start>
+			<end>117620</end>
 		</segment>
 		<segment>
-			<start>129075</start>
-			<end>132587</end>
+			<start>126320</start>
+			<end>128120</end>
 		</segment>
 		<segment>
-			<start>131239</start>
-			<end>132644</end>
+			<start>128720</start>
+			<end>132170</end>
 		</segment>
 		<segment>
-			<start>137734</start>
-			<end>139894</end>
+			<start>138320</start>
+			<end>141770</end>
 		</segment>
 		<segment>
-			<start>138899</start>
-			<end>140597</end>
+			<start>147770</start>
+			<end>154370</end>
 		</segment>
 		<segment>
-			<start>140387</start>
-			<end>142235</end>
+			<start>164270</start>
+			<end>166070</end>
 		</segment>
 		<segment>
-			<start>151958</start>
-			<end>153977</end>
+			<start>178370</start>
+			<end>180770</end>
 		</segment>
 		<segment>
-			<start>163708</start>
-			<end>165806</end>
+			<start>198470</start>
+			<end>200270</end>
 		</segment>
 		<segment>
-			<start>171282</start>
-			<end>173728</end>
+			<start>206270</start>
+			<end>207620</end>
 		</segment>
 		<segment>
-			<start>179187</start>
-			<end>180505</end>
+			<start>212870</start>
+			<end>216770</end>
 		</segment>
 		<segment>
-			<start>178151</start>
-			<end>179819</end>
+			<start>220070</start>
+			<end>223370</end>
 		</segment>
 		<segment>
-			<start>191749</start>
-			<end>192996</end>
+			<start>241670</start>
+			<end>243920</end>
 		</segment>
 		<segment>
-			<start>198215</start>
-			<end>200435</end>
+			<start>244520</start>
+			<end>246770</end>
 		</segment>
 		<segment>
-			<start>205827</start>
-			<end>207465</end>
+			<start>258020</start>
+			<end>260870</end>
 		</segment>
 		<segment>
-			<start>207729</start>
-			<end>209738</end>
+			<start>268220</start>
+			<end>272720</end>
 		</segment>
 		<segment>
-			<start>212939</start>
-			<end>215118</end>
+			<start>287120</start>
+			<end>289520</end>
 		</segment>
 		<segment>
-			<start>214866</start>
-			<end>216796</end>
+			<start>293120</start>
+			<end>294620</end>
 		</segment>
 		<segment>
-			<start>219376</start>
-			<end>221740</end>
+			<start>299420</start>
+			<end>302570</end>
 		</segment>
 		<segment>
-			<start>221842</start>
-			<end>223229</end>
+			<start>322220</start>
+			<end>324620</end>
 		</segment>
 		<segment>
-			<start>223993</start>
-			<end>225666</end>
+			<start>327770</start>
+			<end>338120</end>
 		</segment>
 		<segment>
-			<start>241728</start>
-			<end>244143</end>
+			<start>345470</start>
+			<end>348470</end>
 		</segment>
 		<segment>
-			<start>247842</start>
-			<end>249330</end>
+			<start>357620</start>
+			<end>362270</end>
 		</segment>
 		<segment>
-			<start>258228</start>
-			<end>260392</end>
+			<start>368720</start>
+			<end>370820</end>
 		</segment>
 		<segment>
-			<start>258591</start>
-			<end>260820</end>
+			<start>375620</start>
+			<end>378320</end>
 		</segment>
 		<segment>
-			<start>266282</start>
-			<end>268886</end>
+			<start>409325</start>
+			<end>411575</end>
 		</segment>
 		<segment>
-			<start>268110</start>
-			<end>271290</end>
+			<start>417125</start>
+			<end>420125</end>
 		</segment>
 		<segment>
-			<start>270963</start>
-			<end>272486</end>
+			<start>434375</start>
+			<end>437525</end>
 		</segment>
 		<segment>
-			<start>286683</start>
-			<end>289341</end>
+			<start>447275</start>
+			<end>451475</end>
 		</segment>
 		<segment>
-			<start>288778</start>
-			<end>289905</end>
+			<start>460025</start>
+			<end>463925</end>
 		</segment>
 		<segment>
-			<start>292724</start>
-			<end>297583</end>
+			<start>478025</start>
+			<end>481625</end>
 		</segment>
 		<segment>
-			<start>299880</start>
-			<end>301525</end>
+			<start>488675</start>
+			<end>491375</end>
 		</segment>
 		<segment>
-			<start>311854</start>
-			<end>313112</end>
+			<start>500925</start>
+			<end>509325</end>
 		</segment>
 		<segment>
-			<start>322034</start>
-			<end>324160</end>
+			<start>515495</start>
+			<end>518988</end>
 		</segment>
 		<segment>
-			<start>327696</start>
-			<end>329829</end>
+			<start>527719</start>
+			<end>530513</end>
 		</segment>
 		<segment>
-			<start>329827</start>
-			<end>332467</end>
+			<start>542141</start>
+			<end>543641</end>
 		</segment>
 		<segment>
-			<start>330464</start>
-			<end>331937</end>
+			<start>550472</start>
+			<end>551822</end>
 		</segment>
 		<segment>
-			<start>334587</start>
-			<end>338079</end>
+			<start>556022</start>
+			<end>557672</end>
 		</segment>
 		<segment>
-			<start>340092</start>
-			<end>341504</end>
+			<start>562022</start>
+			<end>563822</end>
 		</segment>
 		<segment>
-			<start>345151</start>
-			<end>348041</end>
+			<start>566072</start>
+			<end>567572</end>
 		</segment>
 		<segment>
-			<start>345687</start>
-			<end>346869</end>
+			<start>575522</start>
+			<end>580772</end>
 		</segment>
 		<segment>
-			<start>352384</start>
-			<end>354162</end>
+			<start>582572</start>
+			<end>583772</end>
 		</segment>
 		<segment>
-			<start>357628</start>
-			<end>360524</end>
+			<start>590672</start>
+			<end>592172</end>
 		</segment>
 		<segment>
-			<start>360887</start>
-			<end>362741</end>
+			<start>596072</start>
+			<end>597272</end>
 		</segment>
 		<segment>
-			<start>360606</start>
-			<end>362129</end>
+			<start>598472</start>
+			<end>600722</end>
 		</segment>
 		<segment>
-			<start>368828</start>
-			<end>370352</end>
+			<start>608522</start>
+			<end>610622</end>
 		</segment>
 		<segment>
-			<start>373108</start>
-			<end>374791</end>
+			<start>616172</start>
+			<end>617372</end>
 		</segment>
 		<segment>
-			<start>375271</start>
-			<end>378586</end>
+			<start>632096</start>
+			<end>634646</end>
 		</segment>
 		<segment>
-			<start>385046</start>
-			<end>386389</end>
+			<start>634646</start>
+			<end>637796</end>
 		</segment>
 		<segment>
-			<start>408799</start>
-			<end>410949</end>
-		</segment>
-		<segment>
-			<start>415484</start>
-			<end>417127</end>
-		</segment>
-		<segment>
-			<start>418046</start>
-			<end>420456</end>
-		</segment>
-		<segment>
-			<start>417362</start>
-			<end>420233</end>
-		</segment>
-		<segment>
-			<start>431410</start>
-			<end>432612</end>
-		</segment>
-		<segment>
-			<start>434610</start>
-			<end>437235</end>
-		</segment>
-		<segment>
-			<start>435574</start>
-			<end>437324</end>
-		</segment>
-		<segment>
-			<start>446476</start>
-			<end>448104</end>
-		</segment>
-		<segment>
-			<start>447846</start>
-			<end>451074</end>
-		</segment>
-		<segment>
-			<start>455038</start>
-			<end>455879</end>
-		</segment>
-		<segment>
-			<start>462406</start>
-			<end>463659</end>
-		</segment>
-		<segment>
-			<start>468422</start>
-			<end>470506</end>
-		</segment>
-		<segment>
-			<start>478888</start>
-			<end>480474</end>
-		</segment>
-		<segment>
-			<start>479674</start>
-			<end>481444</end>
-		</segment>
-		<segment>
-			<start>488680</start>
-			<end>491036</end>
-		</segment>
-		<segment>
-			<start>501722</start>
-			<end>507114</end>
-		</segment>
-		<segment>
-			<start>505211</start>
-			<end>509017</end>
-		</segment>
-		<segment>
-			<start>479845</start>
-			<end>481419</end>
-		</segment>
-		<segment>
-			<start>514958</start>
-			<end>518876</end>
-		</segment>
-		<segment>
-			<start>520183</start>
-			<end>522787</end>
-		</segment>
-		<segment>
-			<start>527917</start>
-			<end>530305</end>
-		</segment>
-		<segment>
-			<start>534071</start>
-			<end>536531</end>
-		</segment>
-		<segment>
-			<start>542047</start>
-			<end>543309</end>
-		</segment>
-		<segment>
-			<start>550313</start>
-			<end>551580</end>
-		</segment>
-		<segment>
-			<start>550671</start>
-			<end>551944</end>
-		</segment>
-		<segment>
-			<start>555650</start>
-			<end>557579</end>
-		</segment>
-		<segment>
-			<start>561997</start>
-			<end>563570</end>
-		</segment>
-		<segment>
-			<start>562500</start>
-			<end>564198</end>
-		</segment>
-		<segment>
-			<start>566032</start>
-			<end>567281</end>
-		</segment>
-		<segment>
-			<start>570728</start>
-			<end>572091</end>
-		</segment>
-		<segment>
-			<start>575147</start>
-			<end>576806</end>
-		</segment>
-		<segment>
-			<start>577548</start>
-			<end>580538</end>
-		</segment>
-		<segment>
-			<start>582285</start>
-			<end>583627</end>
-		</segment>
-		<segment>
-			<start>591003</start>
-			<end>591976</end>
-		</segment>
-		<segment>
-			<start>596164</start>
-			<end>597282</end>
-		</segment>
-		<segment>
-			<start>598129</start>
-			<end>600625</end>
-		</segment>
-		<segment>
-			<start>607966</start>
-			<end>610437</end>
-		</segment>
-		<segment>
-			<start>616072</start>
-			<end>617335</end>
-		</segment>
-		<segment>
-			<start>615926</start>
-			<end>617474</end>
-		</segment>
-		<segment>
-			<start>615809</start>
-			<end>617807</end>
-		</segment>
-		<segment>
-			<start>627946</start>
-			<end>630506</end>
-		</segment>
-		<segment>
-			<start>631880</start>
-			<end>634695</end>
-		</segment>
-		<segment>
-			<start>635025</start>
-			<end>637431</end>
-		</segment>
-		<segment>
-			<start>642425</start>
-			<end>644830</end>
+			<start>642746</start>
+			<end>645296</end>
 		</segment>
 	</segments>
 	<object />

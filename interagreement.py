@@ -20,7 +20,7 @@ class xmlCalc:
             tree = ET.parse(xmlFileIn[i])
             root = tree.getroot()
             #annotator = root.find("annotator").text
-            filepath = xmlFileIn[i]
+            filename = self.getFileName(xmlFileIn[i])
             for segment in root.iter("segment"):
                 '''k = 0
                 for f in segment.iter():
@@ -29,7 +29,7 @@ class xmlCalc:
                 for l in range(k):'''
                 framestart = int(segment.find(fstartstring).text)
                 frameend = int(segment.find(fendstring).text)
-                annotationList.append([filepath, f"Annotation {j}", framestart, frameend])
+                annotationList.append([filename, f"Annotation {j}", framestart, frameend])
                 j += 1
         return annotationList
 
@@ -41,7 +41,7 @@ class xmlCalc:
             continuum.add(x[0], Segment(x[2], x[3]), '')
         dissim = PositionalSporadicDissimilarity(delta_empty=1.0)
         print('Starting Calculation')
-        gamma_results = continuum.compute_gamma(dissim, precision_level=0.1)  # output final gamma val
+        gamma_results = continuum.compute_gamma(dissim, precision_level=0.1, fast=True)  # output final gamma val
         # print(f"The gamma for that annotation is f{gamma_results.gamma}") old code
         return gamma_results.gamma
 
@@ -61,6 +61,13 @@ class xmlCalc:
 
         pass
 
+    def getFileName(self,path):
+        i=-1
+        while True:
+            if path[i]!='/':
+                i-=1
+            else:
+                return path[i+1:]
 
 if __name__ == "__main__":
     xmlList = ["test1.xml", "test2.xml"]  # Store xml file names/dir as strings in list
