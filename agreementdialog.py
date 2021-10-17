@@ -1,9 +1,14 @@
 # Dialog box for calculating agreement
 from PyQt5.QtCore import QCoreApplication, QMetaObject
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox, QLabel
+from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox, QLabel, QDialog
 
+class AgreementDialog(QDialog):
+    def __init__(self):
+        super().__init__()
 
-class agreement_dialog(object):
+        self.setupUi()
+        self.setupEvents()
+
     # Add annotation file to list widget
     def add_annoxml(self):
         filters = ['XML files(*.xml)','All files(*)']
@@ -55,48 +60,42 @@ class agreement_dialog(object):
             else:
                 return path[i+1:]
 
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(270, 170)
-        self.verticalLayout = QVBoxLayout(Dialog)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.listWidget = QListWidget(Dialog)
-        self.listWidget.setObjectName("listWidget")
-        self.verticalLayout.addWidget(self.listWidget)
-        self.infotext = QLabel("infotext")
-        self.verticalLayout.addWidget(self.infotext)
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+    def setupUi(self):
+        self.setObjectName("Dialog")
+        self.resize(270, 170)
 
-        self.buttonAddFile = QPushButton(Dialog)
-        self.buttonAddFile.setObjectName("pushButton")
-        self.horizontalLayout_2.addWidget(self.buttonAddFile)
+        self.v_layout = QVBoxLayout(self)
+        self.listwidget_files = QListWidget(self)
+        self.v_layout.addWidget(self.listwidget_files)
+        self.infotext = QLabel(self)
+        self.v_layout.addWidget(self.infotext)
 
-        self.buttonCalculate = QPushButton(Dialog)
-        self.buttonCalculate.setObjectName("buttonCalculate")
-        self.horizontalLayout_2.addWidget(self.buttonCalculate)
+        self.h_layout = QHBoxLayout(self)
+        self.buttonAddFile = QPushButton(self)
+        self.h_layout.addWidget(self.buttonAddFile)
+        self.buttonCalculate = QPushButton(self)
+        self.h_layout.addWidget(self.buttonCalculate)
+        self.button_close = QPushButton(self)
+        self.h_layout.addWidget(self.button_close)
 
-        self.buttonCancel = QPushButton(Dialog)
-        self.buttonCancel.setObjectName("buttonCancel")
-        self.horizontalLayout_2.addWidget(self.buttonCancel)
-        
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.v_layout.addLayout(self.h_layout)
 
-        self.retranslateUi(Dialog)
-        QMetaObject.connectSlotsByName(Dialog)
+        self.retranslateUi()
+        QMetaObject.connectSlotsByName(self)
         self.xmlfilepaths = []
 
-    def retranslateUi(self, Dialog):
+    def retranslateUi(self):
         _translate = QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Inter-Annotator Agreement"))
+        self.setWindowTitle(_translate(
+            "Dialog", "Inter-Annotator Agreement"))
         self.buttonAddFile.setText(_translate("Dialog", "Add File"))
         self.buttonCalculate.setText(_translate("Dialog", "Calculate"))
-        self.buttonCancel.setText(_translate("Dialog", "Cancel"))
         self.infotext.setText(_translate("Dialog", "Double-click to remove from list"))
+        self.button_close.setText(_translate("Dialog", "Close"))
 
-    def sig_slot_link(self, Dialog):
+    def setupEvents(self):
         self.buttonAddFile.clicked.connect(self.add_annoxml)
         self.buttonCalculate.clicked.connect(self.run_calc)
-        self.buttonCancel.clicked.connect(Dialog.reject)
-        self.listWidget.itemDoubleClicked.connect(self.listRemoveItem)
+        self.button_close.clicked.connect(self.reject)
+        self.listwidget_files.itemDoubleClicked.connect(self.listRemoveItem)
 

@@ -1,17 +1,16 @@
 from PyQt5.QtCore import QCoreApplication, QDir, QMetaObject, QRect, Qt, QUrl
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QDialog, QFileDialog,
                              QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-                             QMainWindow, QMenu, QMenuBar, QPushButton,
-                             QSlider, QStatusBar, QStyle, QTextEdit,
-                             QVBoxLayout, QWidget, QMessageBox, QDialog)
+                             QMainWindow, QMenu, QMenuBar, QMessageBox,
+                             QPushButton, QSlider, QStatusBar, QStyle,
+                             QTextEdit, QVBoxLayout, QWidget)
 
+from agreementdialog import AgreementDialog
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms, write_annotator_xml
 from widgets.capture_segment_widget import CaptureSegmentWidget
-from agreementdialog import agreement_dialog
-from xmlHandler import XMLhandler
 
 
 class Ui_MainWindow(QMainWindow):
@@ -19,14 +18,17 @@ class Ui_MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.setupUi()
+        self.setupEvents()
+
         # The active video and capture data
         self.annotation: VideoAnnotationData = None
         self.capture: VideoAnnotationSegment = None
         self.capturing = False
 
-    def setupUi(self, MainWindow):
-        MainWindow.resize(1280, 720)
-        self.central_widget = QWidget(MainWindow)
+    def setupUi(self):
+        self.resize(1280, 720)
+        self.central_widget = QWidget(self)
         self.vertical_layout = QVBoxLayout(self.central_widget)
         self.upper_h_layout = QHBoxLayout()
 
@@ -80,24 +82,16 @@ class Ui_MainWindow(QMainWindow):
         self.seek_slider = QSlider(self.central_widget)
         self.seek_slider.setOrientation(Qt.Horizontal)
         self.lower_h_layout.addWidget(self.seek_slider)
-        # # Volume slider
-        # self.lower_h_layout.addWidget(QLabel(text='Volume -'))
-        # self.volume_slider = QSlider(self.central_widget)
-        # self.volume_slider.setOrientation(Qt.Horizontal)
-        # self.volume_slider.setMaximumSize(100, 20)
-        # self.volume_slider.setRange(0, 100)
-        # self.volume_slider.setValue(70)
-        # self.lower_h_layout.addWidget(self.volume_slider)
-        # self.lower_h_layout.addWidget(QLabel(text='+'))
-        vol_box = QVBoxLayout()
-        vol_box.addWidget(QLabel(alignment=Qt.AlignCenter, text='Volume'))
+        # Volume slider
+        vol_box = QHBoxLayout()
         self.volume_slider = QSlider(self.central_widget)
         self.volume_slider.setOrientation(Qt.Horizontal)
         self.volume_slider.setMaximumSize(100, 20)
         self.volume_slider.setRange(0, 100)
-        self.volume_slider.setValue(70)
+        self.volume_slider.setValue(100)
+        vol_box.addWidget(QLabel(alignment=Qt.AlignCenter, text='-'))
         vol_box.addWidget(self.volume_slider, alignment=Qt.AlignCenter)
-        vol_box.addWidget(QLabel(alignment=Qt.AlignCenter, text='-                       +'))
+        vol_box.addWidget(QLabel(alignment=Qt.AlignCenter, text='+'))
         self.lower_h_layout.addLayout(vol_box)
 
         # Capture start button
@@ -111,29 +105,31 @@ class Ui_MainWindow(QMainWindow):
         self.lower_h_layout.addWidget(self.button_export)
         # Layouts
         self.vertical_layout.addLayout(self.lower_h_layout)
-        MainWindow.setCentralWidget(self.central_widget)
+        self.setCentralWidget(self.central_widget)
 
         # Menu Bar
-        self.menubar = QMenuBar(MainWindow)
+        self.menubar = QMenuBar(self)
         self.menubar.setGeometry(QRect(0, 0, 1280, 26))
         self.menu_file = QMenu(self.menubar)
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QStatusBar(MainWindow)
-        MainWindow.setStatusBar(self.statusbar)
-        self.action_open_file = QAction(MainWindow)
+        self.setMenuBar(self.menubar)
+
+        self.statusbar = QStatusBar(self)
+        self.setStatusBar(self.statusbar)
+
+        self.action_open_file = QAction(self)
         self.menu_file.addAction(self.action_open_file)
         self.menubar.addAction(self.menu_file.menuAction())
 
-        self.action_calc_agreement = QAction(MainWindow)
+        self.action_calc_agreement = QAction(self)
         self.menu_file.addAction(self.action_calc_agreement)
         self.menubar.addAction(self.menu_file.menuAction())
 
-        self.about = QAction(MainWindow)
+        self.about = QAction(self)
         self.menu_file.addAction(self.about)
         self.menubar.addAction(self.menu_file.menuAction())
 
-        self.retranslateUi(MainWindow)
-        QMetaObject.connectSlotsByName(MainWindow)
+        self.retranslateUi(self)
+        QMetaObject.connectSlotsByName(self)
 
         # Setup UI state
         self.label_video_position.setText("--:--")
@@ -159,7 +155,8 @@ class Ui_MainWindow(QMainWindow):
         self.button_cap_start.setText(
             _translate("MainWindow", "Capture Start (Z)"))
         self.button_cap_start.setShortcut(_translate("MainWindow", "Z"))
-        self.button_cap_end.setText(_translate("MainWindow", "Capture End (X)"))
+        self.button_cap_end.setText(
+            _translate("MainWindow", "Capture End (X)"))
         self.button_cap_end.setShortcut(_translate("MainWindow", "X"))
         self.button_prev.setText(_translate("MainWindow", "Prev (N)"))
         self.button_prev.setShortcut(_translate("MainWindow", "N"))
@@ -175,7 +172,8 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file.setShortcut(_translate("MainWindow", "F1"))
         self.about.setText(_translate("MainWindow", "About"))
 
-        self.action_calc_agreement.setText(_translate("MainWindow", "Calculate..."))
+        self.action_calc_agreement.setText(
+            _translate("MainWindow", "Calculate..."))
         self.action_open_file.setToolTip(_translate(
             "MainWindow", "Open XML Files"))
         self.action_calc_agreement.setShortcut(_translate("MainWindow", "F2"))
@@ -190,7 +188,8 @@ class Ui_MainWindow(QMainWindow):
         self.button_play.clicked.connect(self.button_play_clicked)
         self.seek_slider.sliderMoved.connect(
             self.seek_slider_position_changed)
-        self.volume_slider.sliderMoved.connect(self.volume_slider_position_changed)
+        self.volume_slider.sliderMoved.connect(
+            self.volume_slider_position_changed)
         self.media_player.stateChanged.connect(self.media_state_changed)
         # self.media_player.mediaStatusChanged.connect(self.media_status_changed)
         self.media_player.positionChanged.connect(self.media_position_changed)
@@ -238,6 +237,9 @@ class Ui_MainWindow(QMainWindow):
             self.button_prev.setEnabled(True)
             self.button_next.setEnabled(True)
 
+    def on_menu_calc_click(self):
+        self.dialog = AgreementDialog()
+        self.dialog.show()
 
     def action_about_clicked(self):
         about = QMessageBox()
@@ -246,11 +248,10 @@ class Ui_MainWindow(QMainWindow):
         about.setDetailedText("Python Team P8-53\nPython Video Annotator")
         about.setText("Created By\n\nTan Jia Ding [2102238]\nWang Ting Wei [2101332]\nTam Wei Cheng [2100977]"
                       "\nEric Cheong [2103020]\nDylan Teo [2101920]")
-
-        x = about.exec_()
-
+        about.exec()
 
     # [Event] Called when play/pause button is clicked.
+
     def button_play_clicked(self):
         if self.media_player.mediaStatus() == QMediaPlayer.MediaStatus.NoMedia:
             self.action_open_file_clicked()
@@ -299,7 +300,7 @@ class Ui_MainWindow(QMainWindow):
         path, _ = QFileDialog.getSaveFileName(
             None, 'Export PASCAL VOL', QDir.currentPath(), 'XML files (*.xml)')
         # TODO: Implement export to XML
-        write_annotator_xml(self.annotation,path)
+        write_annotator_xml(self.annotation, path)
         print('Exported XML to', path)
 
     # [Event] Called when manually moving seek slider in UI.
@@ -410,14 +411,3 @@ class Ui_MainWindow(QMainWindow):
         for f in self.annotation.frames:
             self.__add_capture_segment(
                 f.frame_start_ms, f.frame_end_ms)
-
-    def on_menu_calc_click(self):
-        dialog = createAgreementDialog(self)
-        dialog.exec()
-
-class createAgreementDialog(QDialog):
-    def __init__(self,parent=None):
-        super().__init__(parent)
-        self.ui = agreement_dialog()
-        self.ui.setupUi(self)
-        self.ui.sig_slot_link(self)

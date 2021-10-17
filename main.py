@@ -5,11 +5,6 @@ from gui import Ui_MainWindow
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
-    MainWindow = QMainWindow()
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-
-    ui.setupEvents()
-
-    MainWindow.show()
+    ui.show()
     sys.exit(app.exec_())
