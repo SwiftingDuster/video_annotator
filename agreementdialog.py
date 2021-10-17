@@ -1,59 +1,62 @@
 # Dialog box for calculating agreement
 from PyQt5.QtCore import QCoreApplication, QMetaObject
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox
 
 
-class agreement_dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(200, 150)
-        self.verticalLayout = QVBoxLayout(Dialog)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.listWidget = QListWidget(Dialog)
-        self.listWidget.setObjectName("listWidget")
-        self.verticalLayout.addWidget(self.listWidget)
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+class AgreementDialog(QDialog):
+    def __init__(self):
+        super().__init__()
 
-        self.buttonAddFile = QPushButton(Dialog)
-        self.buttonAddFile.setObjectName("pushButton")
-        self.horizontalLayout_2.addWidget(self.buttonAddFile)
+        self.setupUi()
+        self.setupEvents()
 
-        self.buttonCalculate = QPushButton(Dialog)
-        self.buttonCalculate.setObjectName("buttonCalculate")
-        self.horizontalLayout_2.addWidget(self.buttonCalculate)
-
-        self.buttonCancel = QPushButton(Dialog)
-        self.buttonCancel.setObjectName("buttonCancel")
-        self.horizontalLayout_2.addWidget(self.buttonCancel)
-        
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
-
-        self.retranslateUi(Dialog)
-        QMetaObject.connectSlotsByName(Dialog)
         self.xmlfilepaths = []
 
-    def retranslateUi(self, Dialog):
+    def setupUi(self):
+        self.setObjectName("Dialog")
+        self.resize(200, 150)
+
+        self.v_layout = QVBoxLayout(self)
+        self.listwidget_files = QListWidget(self)
+        self.v_layout.addWidget(self.listwidget_files)
+
+        self.h_layout = QHBoxLayout()
+        self.buttonAddFile = QPushButton(self)
+        self.h_layout.addWidget(self.buttonAddFile)
+        self.buttonCalculate = QPushButton(self)
+        self.h_layout.addWidget(self.buttonCalculate)
+        self.button_close = QPushButton(self)
+        self.h_layout.addWidget(self.button_close)
+
+        self.v_layout.addLayout(self.h_layout)
+
+        self.retranslateUi()
+        QMetaObject.connectSlotsByName(self)
+
+    def retranslateUi(self):
         _translate = QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Inter-Annotator Agreement"))
+        self.setWindowTitle(_translate(
+            "Dialog", "Inter-Annotator Agreement"))
         self.buttonAddFile.setText(_translate("Dialog", "Add File"))
         self.buttonCalculate.setText(_translate("Dialog", "Calculate"))
-        self.buttonCancel.setText(_translate("Dialog", "Cancel"))
+        self.button_close.setText(_translate("Dialog", "Close"))
 
-    def sig_slot_link(self, Dialog):
+    def setupEvents(self):
         self.buttonAddFile.clicked.connect(self.add_annoxml)
         self.buttonCalculate.clicked.connect(self.run_calc)
-        self.buttonCancel.clicked.connect(Dialog.reject)
-        self.listWidget.itemDoubleClicked.connect(self.listRemoveItem)
+        self.button_close.clicked.connect(self.reject)
+        self.listwidget_files.itemDoubleClicked.connect(self.listRemoveItem)
 
     def listRemoveItem(self):
-        self.xmlfilepaths.pop(self.listWidget.currentRow())
-        print(self.listWidget.currentRow())
-        self.listWidget.takeItem(self.listWidget.currentRow())
-        print(self.listWidget.currentRow())
+        self.xmlfilepaths.pop(self.listwidget_files.currentRow())
+        print(self.listwidget_files.currentRow())
+        self.listwidget_files.takeItem(
+            self.listwidget_files.currentRow())
+        print(self.listwidget_files.currentRow())
     # Add annotation file to list widget
+
     def add_annoxml(self):
-        filters = ['XML files(*.xml)','All files(*)']
+        filters = ['XML files(*.xml)', 'All files(*)']
         choosedialog = QFileDialog(None)
         choosedialog.setFileMode(QFileDialog.ExistingFiles)
         choosedialog.setViewMode(QFileDialog.Detail)
@@ -62,24 +65,26 @@ class agreement_dialog(object):
         filepaths = choosedialog.selectedFiles()
         for file in filepaths:
             self.xmlfilepaths.append(file)
-            self.listWidget.addItem(self.getFileName(file))
+            self.listwidget_files.addItem(self.getFileName(file))
     # Message generator
-    def genMessage(self, title = 'Message', content = ''):
+
+    def genMessage(self, title='Message', content=''):
         messagebox = QMessageBox()
         messagebox.setWindowTitle(title)
         messagebox.setText(content)
         messagebox.exec()
 
-    def getFileName(self,path):
-        i=-1
+    def getFileName(self, path):
+        i = -1
         while True:
-            if path[i]!='/':
-                i-=1
+            if path[i] != '/':
+                i -= 1
             else:
                 return path[i+1:]
     # function to start calculation
+
     def run_calc(self):
-        numOfFiles = self.listWidget.count()
+        numOfFiles = self.listwidget_files.count()
         if numOfFiles > 1:
             import interagreement
             '''filepaths=[]
@@ -88,10 +93,12 @@ class agreement_dialog(object):
                 pathstr = pathitem.text()
                 filepaths.append(pathstr)'''
             try:
-                annoData = interagreement.xmlCalc(self.xmlfilepaths)
+                annoData = interagreement.InterAgreement(self.xmlfilepaths)
                 gammaval = annoData.computeGamma()
-                self.genMessage('Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
+                self.genMessage(
+                    'Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
             except:
                 self.genMessage('Error', 'Error: Please check input files')
         else:
-            self.genMessage('Error', 'Error: Please add at least 2 input files')
+            self.genMessage(
+                'Error', 'Error: Please add at least 2 input files')
