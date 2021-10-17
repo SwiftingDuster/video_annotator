@@ -59,8 +59,6 @@ class xmlCalc:
                     j=1
         return framepair
 
-        pass
-
     def getFileName(self,path):
         i=-1
         while True:

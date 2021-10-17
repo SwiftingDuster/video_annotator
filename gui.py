@@ -215,6 +215,14 @@ class Ui_MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(
             None, 'Open Video', QDir.homePath(), 'Video Files (*.mp4)')
         if file_path:
+            '''mediafile = QFile(file_path)
+            mediafile.open(QIODevice.ReadOnly)
+            ba = QByteArray()
+            ba.append(mediafile.readAll())
+            buffer = QBuffer(ba)
+            buffer.open(QIODevice.ReadOnly)
+            buffer.reset()
+            self.media_player.setMedia(QMediaContent(), buffer)'''
             self.media_player.setMedia(
                 QMediaContent(QUrl.fromLocalFile(file_path)))
 

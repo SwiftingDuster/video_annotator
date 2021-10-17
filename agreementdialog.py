@@ -1,17 +1,70 @@
 # Dialog box for calculating agreement
 from PyQt5.QtCore import QCoreApplication, QMetaObject
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox, QLabel
 
 
 class agreement_dialog(object):
+    # Add annotation file to list widget
+    def add_annoxml(self):
+        filters = ['XML files(*.xml)','All files(*)']
+        choosedialog = QFileDialog(None)
+        choosedialog.setFileMode(QFileDialog.ExistingFiles)
+        choosedialog.setViewMode(QFileDialog.Detail)
+        choosedialog.setNameFilters(filters)
+        choosedialog.exec()
+        filepaths = choosedialog.selectedFiles()
+        for file in filepaths:
+            self.xmlfilepaths.append(file)
+            self.listWidget.addItem(self.getFileName(file))
+    # Remove item from list widget
+    def listRemoveItem(self):
+        self.xmlfilepaths.pop(self.listWidget.currentRow())
+        self.listWidget.takeItem(self.listWidget.currentRow())
+
+    # Function to start calculation
+    def run_calc(self):
+        numOfFiles = self.listWidget.count()
+        if numOfFiles > 1:
+            import interagreement
+            '''filepaths=[]
+            for i in range(self.listWidget.count()):
+                pathitem = self.listWidget.item(i)
+                pathstr = pathitem.text()
+                filepaths.append(pathstr)'''
+            try:
+                annoData = interagreement.xmlCalc(self.xmlfilepaths)
+                gammaval = annoData.computeGamma()
+                self.genMessage('Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
+            except:
+                self.genMessage('Error', 'Error: Please check input files')
+        else:
+            self.genMessage('Error', 'Error: Please add at least 2 input files')
+
+    # Message generator
+    def genMessage(self, title = 'Message', content = ''):
+        messagebox = QMessageBox()
+        messagebox.setWindowTitle(title)
+        messagebox.setText(content)
+        messagebox.exec()
+
+    def getFileName(self,path):
+        i=-1
+        while True:
+            if path[i]!='/':
+                i-=1
+            else:
+                return path[i+1:]
+
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(200, 150)
+        Dialog.resize(270, 170)
         self.verticalLayout = QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.listWidget = QListWidget(Dialog)
         self.listWidget.setObjectName("listWidget")
         self.verticalLayout.addWidget(self.listWidget)
+        self.infotext = QLabel("infotext")
+        self.verticalLayout.addWidget(self.infotext)
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
 
@@ -39,6 +92,7 @@ class agreement_dialog(object):
         self.buttonAddFile.setText(_translate("Dialog", "Add File"))
         self.buttonCalculate.setText(_translate("Dialog", "Calculate"))
         self.buttonCancel.setText(_translate("Dialog", "Cancel"))
+        self.infotext.setText(_translate("Dialog", "Double-click to remove from list"))
 
     def sig_slot_link(self, Dialog):
         self.buttonAddFile.clicked.connect(self.add_annoxml)
@@ -46,52 +100,3 @@ class agreement_dialog(object):
         self.buttonCancel.clicked.connect(Dialog.reject)
         self.listWidget.itemDoubleClicked.connect(self.listRemoveItem)
 
-    def listRemoveItem(self):
-        self.xmlfilepaths.pop(self.listWidget.currentRow())
-        print(self.listWidget.currentRow())
-        self.listWidget.takeItem(self.listWidget.currentRow())
-        print(self.listWidget.currentRow())
-    # Add annotation file to list widget
-    def add_annoxml(self):
-        filters = ['XML files(*.xml)','All files(*)']
-        choosedialog = QFileDialog(None)
-        choosedialog.setFileMode(QFileDialog.ExistingFiles)
-        choosedialog.setViewMode(QFileDialog.Detail)
-        choosedialog.setNameFilters(filters)
-        choosedialog.exec()
-        filepaths = choosedialog.selectedFiles()
-        for file in filepaths:
-            self.xmlfilepaths.append(file)
-            self.listWidget.addItem(self.getFileName(file))
-    # Message generator
-    def genMessage(self, title = 'Message', content = ''):
-        messagebox = QMessageBox()
-        messagebox.setWindowTitle(title)
-        messagebox.setText(content)
-        messagebox.exec()
-
-    def getFileName(self,path):
-        i=-1
-        while True:
-            if path[i]!='/':
-                i-=1
-            else:
-                return path[i+1:]
-    # function to start calculation
-    def run_calc(self):
-        numOfFiles = self.listWidget.count()
-        if numOfFiles > 1:
-            import interagreement
-            '''filepaths=[]
-            for i in range(self.listWidget.count()):
-                pathitem = self.listWidget.item(i)
-                pathstr = pathitem.text()
-                filepaths.append(pathstr)'''
-            try:
-                annoData = interagreement.xmlCalc(self.xmlfilepaths)
-                gammaval = annoData.computeGamma()
-                self.genMessage('Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
-            except:
-                self.genMessage('Error', 'Error: Please check input files')
-        else:
-            self.genMessage('Error', 'Error: Please add at least 2 input files')
