@@ -20,24 +20,24 @@ class AgreementDialog(QDialog):
         filepaths = choosedialog.selectedFiles()
         for file in filepaths:
             self.xmlfilepaths.append(file)
-            self.listWidget.addItem(self.getFileName(file))
+            self.listwidget_files.addItem(self.getFileName(file))
     # Remove item from list widget
     def listRemoveItem(self):
-        self.xmlfilepaths.pop(self.listWidget.currentRow())
-        self.listWidget.takeItem(self.listWidget.currentRow())
+        self.xmlfilepaths.pop(self.listwidget_files.currentRow())
+        self.listwidget_files.takeItem(self.listwidget_files.currentRow())
 
     # Function to start calculation
     def run_calc(self):
-        numOfFiles = self.listWidget.count()
+        numOfFiles = self.listwidget_files.count()
         if numOfFiles > 1:
             import interagreement
             '''filepaths=[]
-            for i in range(self.listWidget.count()):
-                pathitem = self.listWidget.item(i)
+            for i in range(self.listwidget_files.count()):
+                pathitem = self.listwidget_files.item(i)
                 pathstr = pathitem.text()
                 filepaths.append(pathstr)'''
             try:
-                annoData = interagreement.xmlCalc(self.xmlfilepaths)
+                annoData = interagreement.InterAgreement(self.xmlfilepaths)
                 gammaval = annoData.computeGamma()
                 self.genMessage('Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
             except:
