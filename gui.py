@@ -285,12 +285,21 @@ class Ui_MainWindow(QMainWindow):
             None, 'Load Annotations', QDir.homePath(), 'XML Files (*.xml)')
         if file_path:
             annotation = XMLhandler.loadXML(file_path)
-            if annotation.fps == self.annotation.fps and annotation.resolution == self.annotation.resolution:
-                self.annotation = annotation
-                self._update_capture_segments()
-            else:
-                # TODO: Annotation data wrong
-                pass
+            if annotation.fps != self.annotation.fps or annotation.resolution != self.annotation.resolution:
+                # Annotation data wrong
+                prompt = QMessageBox()
+                prompt.setIcon(QMessageBox.Icon.Warning)
+                prompt.setWindowTitle("Error")
+                prompt.setText("Annotation data mismatch with video.")
+                prompt.setInformativeText("Load anyway?")
+                prompt.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                prompt.setDefaultButton(QMessageBox.StandardButton.No)
+                r = prompt.exec()
+                if r != QMessageBox.StandardButton.Yes:
+                    return
+
+            self.annotation = annotation
+            self._update_capture_segments()
 
     # [Event] Called when export button is clicked.
     def button_export_clicked(self):
