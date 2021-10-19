@@ -1,4 +1,5 @@
-from PyQt5.QtCore import QCoreApplication, QDir, QMetaObject, QRect, Qt, QUrl
+from PyQt5.QtCore import (QCoreApplication, QDir, QMetaObject, QModelIndex,
+                          QRect, Qt, QUrl)
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QDialog, QFileDialog,
@@ -23,8 +24,10 @@ class Ui_MainWindow(QMainWindow):
 
         # The active video and capture data
         self.annotation: VideoAnnotationData = None
+        self.seg_to_listwidget = {}
         self.capture: VideoAnnotationSegment = None
         self.capturing = False
+        self.is_highlighting = False
 
     def setupUi(self):
         self.resize(1280, 720)
@@ -215,6 +218,7 @@ class Ui_MainWindow(QMainWindow):
             # Init new video annotation data
             self.annotation = VideoAnnotationData(file_path)
             self.listwidget_captures.clear()
+            self.seg_to_listwidget.clear()
             # Set video info
             self.text_videoinfo.setText(
                 "Filename: {0}\nFPS: {1}\nResolution: {2}x{3}".format(self.annotation.filename, self.annotation.fps, self.annotation.resolution[0], self.annotation.resolution[1]))
@@ -325,6 +329,18 @@ class Ui_MainWindow(QMainWindow):
         # Update timestamp
         self._update_label_timestamp(position)
 
+        # Highlight segment in list if its currently playing
+        segs = self.annotation.find_segment(position)
+        if len(segs) > 0:
+            self.is_highlighting = True
+            seg = segs[0]
+            item = self.seg_to_listwidget[seg]
+            self.listwidget_captures.setCurrentItem(item)
+        else:
+            if self.is_highlighting:
+                self.is_highlighting = False
+                self.listwidget_captures.setCurrentIndex(QModelIndex())
+
         # When capturing, update enabled state of end capture button based on whether end frame is after start frame.
         if self.capturing:
             # Prevent capture from ending if end frame is earlier than start. (Dragging slider back)
@@ -376,6 +392,7 @@ class Ui_MainWindow(QMainWindow):
 
         self.listwidget_captures.addItem(listwidget_item)
         self.listwidget_captures.setItemWidget(listwidget_item, seg_widget)
+        self.seg_to_listwidget[segment] = listwidget_item
 
     def _update_capture_segments(self):
         # Refresh listview

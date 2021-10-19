@@ -39,3 +39,6 @@ class VideoAnnotationData:
 class VideoAnnotationSegment:
     start: int
     end: int
+
+    def __hash__(self):
+        return self.start
