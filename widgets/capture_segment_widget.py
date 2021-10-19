@@ -1,23 +1,28 @@
+from PyQt5.QtCore import pyqtSignal
 
-from typing import Callable
-
-from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QPushButton, QSizePolicy,
+from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QListWidgetItem, QPushButton, QSizePolicy,
                              QStyle, QVBoxLayout, QWidget)
+from models import VideoAnnotationData, VideoAnnotationSegment
+
+from utility import timestamp_from_ms
 
 
-class CaptureSegmentWidget (QWidget):
-    def __init__(self, parent=None):
-        super(CaptureSegmentWidget, self).__init__(parent)
+class CaptureSegmentWidget(QWidget):
+    play = pyqtSignal(VideoAnnotationSegment)
+    delete = pyqtSignal(QListWidgetItem)
+
+    def __init__(self, number, annotation: VideoAnnotationData, segment: VideoAnnotationSegment, widget_item: QListWidgetItem):
+        super().__init__()
         self.h_box_layout = QHBoxLayout()
 
         # Information label on the left
         self.v_box_left_layout = QVBoxLayout()
-        self.label_text = QLabel()
-        self.label_subtext = QLabel()
-        self.label_subtext2 = QLabel()
-        self.v_box_left_layout.addWidget(self.label_text)
-        self.v_box_left_layout.addWidget(self.label_subtext)
-        self.v_box_left_layout.addWidget(self.label_subtext2)
+        self.label_frame_range = QLabel()
+        self.label_timestamp_start = QLabel()
+        self.label_timestamp_end = QLabel()
+        self.v_box_left_layout.addWidget(self.label_frame_range)
+        self.v_box_left_layout.addWidget(self.label_timestamp_start)
+        self.v_box_left_layout.addWidget(self.label_timestamp_end)
 
         # Buttons on the right
         self.v_box_right_layout = QVBoxLayout()
@@ -42,17 +47,25 @@ class CaptureSegmentWidget (QWidget):
         self.button_play.setSizePolicy(policy)
         self.button_delete.setSizePolicy(policy)
 
-    def set_text(self, text):
-        self.label_text.setText(text)
-        return self
+        self.button_play.clicked.connect(self.button_play_clicked)
+        self.button_delete.clicked.connect(self.button_delete_clicked)
 
-    def set_subtext(self, text, text2):
-        self.label_subtext.setText(text)
-        self.label_subtext2.setText(text2)
-        return self
+        self.number = number
+        self.annotation = annotation
+        self.segment = segment
+        self.item = widget_item
 
-    def button_play_clicked(self, handler: Callable[[bool], None]):
-        self.button_play.clicked.connect(handler)
+        frame_start = annotation.frame_from_ms(segment.start)
+        frame_end = annotation.frame_from_ms(segment.end)
+        time_start = timestamp_from_ms(segment.start, True)
+        time_end = timestamp_from_ms(segment.end, True)
+        self.label_frame_range.setText("{0}: Frames {1} - {2}".format(
+            number, frame_start, frame_end))
+        self.label_timestamp_start.setText(time_start)
+        self.label_timestamp_end.setText(time_end)
 
-    def button_delete_clicked(self, handler: Callable[[bool], None]):
-        self.button_delete.clicked.connect(handler)
+    def button_play_clicked(self):
+        self.play.emit(self.segment)
+
+    def button_delete_clicked(self):
+        self.delete.emit(self.item)

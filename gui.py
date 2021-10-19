@@ -214,14 +214,6 @@ class Ui_MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(
             None, 'Open Video', QDir.homePath(), 'Video Files (*.mp4)')
         if file_path:
-            '''mediafile = QFile(file_path)
-            mediafile.open(QIODevice.ReadOnly)
-            ba = QByteArray()
-            ba.append(mediafile.readAll())
-            buffer = QBuffer(ba)
-            buffer.open(QIODevice.ReadOnly)
-            buffer.reset()
-            self.media_player.setMedia(QMediaContent(), buffer)'''
             self.media_player.setMedia(
                 QMediaContent(QUrl.fromLocalFile(file_path)))
 
@@ -279,17 +271,16 @@ class Ui_MainWindow(QMainWindow):
 
     # [Event] Called when end capture button is clicked.
     def button_end_capture_clicked(self):
-        self.capture.frame_end_ms = self.media_player.position()
+        self.capture.end = self.media_player.position()
 
-        if self.capturing and self.capture.frame_start_ms > self.capture.frame_end_ms:
+        if self.capturing and self.capture.start > self.capture.end:
             # Prevent capture from ending if frame end is earlier than start. (Dragging slider back)
             return
 
         self.annotation.frames.append(self.capture)
 
         # Update UI state
-        self.__add_capture_segment(
-            self.capture.frame_start_ms, self.capture.frame_end_ms)
+        self.__add_capture_segment(self.annotation, self.capture)
         self.capturing = False
         self.button_cap_start.setEnabled(True)
         self.button_cap_end.setEnabled(False)
@@ -340,7 +331,7 @@ class Ui_MainWindow(QMainWindow):
         # When capturing, update enabled state of end capture button based on whether end frame is after start frame.
         if self.capturing:
             # Prevent capture from ending if end frame is earlier than start. (Dragging slider back)
-            if self.capture.frame_start_ms < self.media_player.position():
+            if self.capture.start < self.media_player.position():
                 if not self.button_cap_end.isEnabled():
                     self.button_cap_end.setEnabled(True)
             else:
@@ -375,30 +366,27 @@ class Ui_MainWindow(QMainWindow):
     def __delete_selected_segments(self):
         items = self.listwidget_captures.selectedItems()
         for item in items:
-            index = self.listwidget_captures.row(item)
-            self.__delete_segment(index)
+            self.__delete_segment(item)
 
         self.__update_capture_segments()
 
-    def __delete_segment(self, index):
+    def __delete_segment(self, item):
         # Remove from UI
+        index = self.listwidget_captures.row(item)
         self.listwidget_captures.takeItem(index)
         # Remove in captured frames too
         self.annotation.frames.pop(index)
 
-    def __add_capture_segment(self, frame_start_ms, frame_end_ms):
+    def __add_capture_segment(self, annotation, segment):
         count = self.listwidget_captures.count() + 1
-        time_start = timestamp_from_ms(frame_start_ms, True)
-        time_end = timestamp_from_ms(frame_end_ms, True)
-        frame_start = self.annotation.frame_from_ms(frame_start_ms)
-        frame_end = self.annotation.frame_from_ms(frame_end_ms)
-        segment_text = "{0}: Frames {1} - {2}".format(
-            count, frame_start, frame_end)
-
-        seg_widget = CaptureSegmentWidget()
-        seg_widget.set_text(segment_text).set_subtext(time_start, time_end)
-        # seg_widget.button_delete_clicked(self.__delete_selected_segments)
         listwidget_item = QListWidgetItem(self.listwidget_captures)
+
+        seg_widget = CaptureSegmentWidget(
+            count, annotation, segment, listwidget_item)
+        seg_widget.play.connect(
+            lambda segment: self.seek_slider_position_changed(segment.start))
+        seg_widget.delete.connect(lambda item: self.__delete_segment(item))
+
         listwidget_item.setSizeHint(seg_widget.sizeHint())
 
         self.listwidget_captures.addItem(listwidget_item)
@@ -409,5 +397,4 @@ class Ui_MainWindow(QMainWindow):
         # Refresh listview
         self.listwidget_captures.clear()
         for f in self.annotation.frames:
-            self.__add_capture_segment(
-                f.frame_start_ms, f.frame_end_ms)
+            self.__add_capture_segment(self.annotation.frames, f)

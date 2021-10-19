@@ -81,8 +81,8 @@ class XMLhandler:
 
         for item in self.segmented_value:
 
-            start, end = item.frame_start_ms,\
-                item.frame_end_ms
+            start, end = item.start,\
+                item.end
 
             segment = ET.SubElement(segments, f"segment")
             framestart = ET.SubElement(segment, "start")
@@ -98,8 +98,8 @@ class XMLhandler:
             # segmentStart.text=self.segmented_value[item]
 
             # for item in self.segmented_value:
-            #     start, end = item.frame_start_ms, \
-            #                  item.frame_end_ms
+            #     start, end = item.start, \
+            #                  item.end
             #
             #     segment = ET.SubElement(segments, f"segment")
             #     framestart = ET.SubElement(segment, "start")

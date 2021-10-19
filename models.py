@@ -18,9 +18,8 @@ class VideoAnnotationData:
         self.foldername = os.path.dirname(full_path)
         self.filename = os.path.basename(full_path)
         self.fps, self.resolution, _ = get_video_metadata(full_path)
-        self.frames: List[VideoAnnotationSegment]=[]
+        self.frames: List[VideoAnnotationSegment] = []
         print(type(self.frames))
-
 
     def frame_from_ms(self, ms: int):
         ms_per_frame = 1000 / self.fps
@@ -29,5 +28,5 @@ class VideoAnnotationData:
 
 @dataclass
 class VideoAnnotationSegment:
-    frame_start_ms: int
-    frame_end_ms: int
+    start: int
+    end: int
