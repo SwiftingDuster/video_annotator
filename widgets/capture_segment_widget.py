@@ -59,7 +59,7 @@ class CaptureSegmentWidget(QWidget):
         frame_end = annotation.frame_from_ms(segment.end)
         time_start = timestamp_from_ms(segment.start, True)
         time_end = timestamp_from_ms(segment.end, True)
-        self.label_frame_range.setText("{0}: Frames {1} - {2}".format(
+        self.label_frame_range.setText("{0}: {1} - {2}".format(
             number, frame_start, frame_end))
         self.label_timestamp_start.setText(time_start)
         self.label_timestamp_end.setText(time_end)

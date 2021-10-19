@@ -8,15 +8,24 @@ from utility import get_video_metadata
 
 
 class VideoAnnotationData:
-    def __init__(self, full_path):
+
+    def __init__(self):
         """
         Constructor.
-
-        :param path: Full path to video file.
         """
-        self.foldername = os.path.dirname(full_path)
-        self.filename = os.path.basename(full_path)
-        self.fps, self.resolution, _ = get_video_metadata(full_path)
+        self.foldername = self.filename = self.fps = ""
+        self.resolution = 0, 0
+        self._segments: List[VideoAnnotationSegment] = []
+
+    def load(self, video_path):
+        """
+        Load information from video metadata.
+
+        :param video_path: Full path to video file.
+        """
+        self.foldername = os.path.dirname(video_path)
+        self.filename = os.path.basename(video_path)
+        self.fps, self.resolution, _ = get_video_metadata(video_path)
         self._segments: List[VideoAnnotationSegment] = []
 
     @property

@@ -1,15 +1,15 @@
 import xml.etree.ElementTree as ET
 
+from models import VideoAnnotationData, VideoAnnotationSegment
+
 
 class XMLhandler:
 
     def __init__(self, filename, path):
-
         self.filename = filename
         self.path = path
 
     # accepts element name and element value to be changed
-
     def modifyXML(self, element, data):
         self.element = element
         self.data = data
@@ -21,22 +21,37 @@ class XMLhandler:
 
         tree.write(self.filename)
 
-# create an xml object to store xml stuff
+    @staticmethod
+    def loadXML(file_path):
+        data = VideoAnnotationData()
+        xml = ET.parse(file_path)
 
-    def GenerateXML(self, root_value, annotator_value,
-                    foldername_value,
-                    width_value, height_value,
-                    video_resolution_value, fps_value,
-                    segmented_value):
+        folder, file = xml.find("folder").text, xml.find("filename").text
+        fps = int(xml.find("fps").text)
+        res_w = int(xml.find("size").find("width").text)
+        res_h = int(xml.find("size").find("height").text)
+        for e in xml.find("segments").findall("segment"):
+            start = int(e.find("start").text)
+            end = int(e.find("end").text)
+            data.add_segment(VideoAnnotationSegment(start, end))
+
+        data.foldername = folder
+        data.filename = file
+        data.fps = fps
+        data.resolution = (res_w, res_h)
+        return data
+
+    # create an xml object to store xml stuff
+    def saveXML(self, foldername_value, width_value, height_value, fps_value, segmented_value):
         # create the file structure
-        self.root_value = root_value
-        self.annotator_value = annotator_value
+        self.root_value = "Annotation"
+        self.annotator_value = "Video Annotator"
         self.foldername_value = foldername_value
         # self.database_value=database_value
         self.width_value = width_value
         self.height_value = height_value
         # self.depth_value=depth_value
-        self.video_resolution_value = video_resolution_value
+        self.video_resolution_value = f"{width_value}x{height_value}"
         self.fps_value = fps_value
         self.segmented_value = segmented_value
         # self.name_value=name_value
@@ -81,8 +96,7 @@ class XMLhandler:
 
         for item in self.segmented_value:
 
-            start, end = item.start,\
-                item.end
+            start, end = item.start, item.end
 
             segment = ET.SubElement(segments, f"segment")
             framestart = ET.SubElement(segment, "start")
@@ -153,7 +167,7 @@ if __name__ == "__main__":
                 "data3", "data4", "data5"]
     Framelist = ["10", "100", "20", "235"]
     # endFramelist=["12","15","22","33"]
-    xmlinput.GenerateXML("Annotation", "Video Annotator",
-                         "File2", "1920",
-                         "1020", "1920x1020", "FPS",
-                         seg_list)
+    xmlinput.saveXML("Annotation", "Video Annotator",
+                     "File2", "1920",
+                     "1020", "1920x1020", "FPS",
+                     seg_list)
