@@ -2,6 +2,7 @@
 from PyQt5.QtCore import QCoreApplication, QMetaObject
 from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox, QLabel, QDialog
 
+
 class AgreementDialog(QDialog):
     def __init__(self):
         super().__init__()
@@ -11,7 +12,7 @@ class AgreementDialog(QDialog):
 
     # Add annotation file to list widget
     def add_annoxml(self):
-        filters = ['XML files(*.xml)','All files(*)']
+        filters = ['XML files(*.xml)', 'All files(*)']
         choosedialog = QFileDialog(None)
         choosedialog.setFileMode(QFileDialog.ExistingFiles)
         choosedialog.setViewMode(QFileDialog.Detail)
@@ -21,6 +22,7 @@ class AgreementDialog(QDialog):
         for file in filepaths:
             self.xmlfilepaths.append(file)
             self.listwidget_files.addItem(self.getFileName(file))
+
     # Remove item from list widget
     def listRemoveItem(self):
         self.xmlfilepaths.pop(self.listwidget_files.currentRow())
@@ -46,17 +48,17 @@ class AgreementDialog(QDialog):
             self.genMessage('Error', 'Error: Please add at least 2 input files')
 
     # Message generator
-    def genMessage(self, title = 'Message', content = ''):
+    def genMessage(self, title='Message', content=''):
         messagebox = QMessageBox()
         messagebox.setWindowTitle(title)
         messagebox.setText(content)
         messagebox.exec()
 
-    def getFileName(self,path):
-        i=-1
+    def getFileName(self, path):
+        i = -1
         while True:
-            if path[i]!='/':
-                i-=1
+            if path[i] != '/':
+                i -= 1
             else:
                 return path[i+1:]
 
@@ -65,17 +67,17 @@ class AgreementDialog(QDialog):
         self.resize(270, 170)
 
         self.v_layout = QVBoxLayout(self)
-        self.listwidget_files = QListWidget(self)
+        self.listwidget_files = QListWidget()
         self.v_layout.addWidget(self.listwidget_files)
-        self.infotext = QLabel(self)
+        self.infotext = QLabel()
         self.v_layout.addWidget(self.infotext)
 
-        self.h_layout = QHBoxLayout(self)
-        self.buttonAddFile = QPushButton(self)
+        self.h_layout = QHBoxLayout()
+        self.buttonAddFile = QPushButton()
         self.h_layout.addWidget(self.buttonAddFile)
-        self.buttonCalculate = QPushButton(self)
+        self.buttonCalculate = QPushButton()
         self.h_layout.addWidget(self.buttonCalculate)
-        self.button_close = QPushButton(self)
+        self.button_close = QPushButton()
         self.h_layout.addWidget(self.button_close)
 
         self.v_layout.addLayout(self.h_layout)
@@ -86,8 +88,7 @@ class AgreementDialog(QDialog):
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate(
-            "Dialog", "Inter-Annotator Agreement"))
+        self.setWindowTitle(_translate("Dialog", "Inter-Annotator Agreement"))
         self.buttonAddFile.setText(_translate("Dialog", "Add File"))
         self.buttonCalculate.setText(_translate("Dialog", "Calculate"))
         self.infotext.setText(_translate("Dialog", "Double-click to remove from list"))
@@ -98,4 +99,3 @@ class AgreementDialog(QDialog):
         self.buttonCalculate.clicked.connect(self.run_calc)
         self.button_close.clicked.connect(self.reject)
         self.listwidget_files.itemDoubleClicked.connect(self.listRemoveItem)
-

@@ -143,9 +143,6 @@ class Ui_MainWindow(QMainWindow):
         self.listwidget_captures.setSelectionMode(
             QAbstractItemView.SelectionMode.ExtendedSelection)
 
-        # Internal data
-        self.capturing = False
-
     def retranslateUi(self, MainWindow):
         _translate = QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Video Annotator"))
@@ -180,7 +177,8 @@ class Ui_MainWindow(QMainWindow):
 
     def setupEvents(self):
         self.action_open_file.triggered.connect(self.action_open_file_clicked)
-        self.action_calc_agreement.triggered.connect(self.on_menu_calc_click)
+        self.action_calc_agreement.triggered.connect(
+            self.action_interagreement_click)
         self.about.triggered.connect(self.action_about_clicked)
 
         self.button_prev.clicked.connect(self.button_prev_clicked)
@@ -214,22 +212,22 @@ class Ui_MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(
             None, 'Open Video', QDir.homePath(), 'Video Files (*.mp4)')
         if file_path:
-            self.media_player.setMedia(
-                QMediaContent(QUrl.fromLocalFile(file_path)))
-
-            self.seek_slider.setEnabled(True)
-            self.listwidget_captures.clear()
             # Init new video annotation data
             self.annotation = VideoAnnotationData(file_path)
+            self.listwidget_captures.clear()
             # Set video info
             self.text_videoinfo.setText(
                 "Filename: {0}\nFPS: {1}\nResolution: {2}x{3}".format(self.annotation.filename, self.annotation.fps, self.annotation.resolution[0], self.annotation.resolution[1]))
 
+            self.media_player.setMedia(
+                QMediaContent(QUrl.fromLocalFile(file_path)))
+
+            self.seek_slider.setEnabled(True)
             self.volume_slider.setEnabled(True)
             self.button_prev.setEnabled(True)
             self.button_next.setEnabled(True)
 
-    def on_menu_calc_click(self):
+    def action_interagreement_click(self):
         self.dialog = AgreementDialog()
         self.dialog.show()
 
@@ -243,7 +241,6 @@ class Ui_MainWindow(QMainWindow):
         about.exec()
 
     # [Event] Called when play/pause button is clicked.
-
     def button_play_clicked(self):
         if self.media_player.mediaStatus() == QMediaPlayer.MediaStatus.NoMedia:
             self.action_open_file_clicked()
@@ -277,10 +274,10 @@ class Ui_MainWindow(QMainWindow):
             # Prevent capture from ending if frame end is earlier than start. (Dragging slider back)
             return
 
-        self.annotation.frames.append(self.capture)
+        self.annotation.add_segment(self.capture)
 
         # Update UI state
-        self.__add_capture_segment(self.annotation, self.capture)
+        self._add_capture_segment(self.annotation, self.capture)
         self.capturing = False
         self.button_cap_start.setEnabled(True)
         self.button_cap_end.setEnabled(False)
@@ -290,14 +287,15 @@ class Ui_MainWindow(QMainWindow):
         # Write output to file
         path, _ = QFileDialog.getSaveFileName(
             None, 'Export PASCAL VOL', QDir.currentPath(), 'XML files (*.xml)')
-        # TODO: Implement export to XML
         write_annotator_xml(self.annotation, path)
-        print('Exported XML to', path)
 
     # [Event] Called when manually moving seek slider in UI.
     def seek_slider_position_changed(self, position):
         self.media_player.setPosition(position)
+        # Update timestamp
+        self._update_label_timestamp(position)
 
+    # [Event] Called when manually moving volume slider in UI.
     def volume_slider_position_changed(self, position):
         self.media_player.setVolume(position)
 
@@ -325,8 +323,7 @@ class Ui_MainWindow(QMainWindow):
         # Update seek slider progress
         self.seek_slider.setValue(position)
         # Update timestamp
-        self.label_video_position.setText('{0} / {1}'.format(timestamp_from_ms(
-            position), timestamp_from_ms(self.media_player.duration())))
+        self._update_label_timestamp(position)
 
         # When capturing, update enabled state of end capture button based on whether end frame is after start frame.
         if self.capturing:
@@ -358,43 +355,44 @@ class Ui_MainWindow(QMainWindow):
         global_pos = self.listwidget_captures.mapToGlobal(pos)
 
         context_actions = QMenu()
-        context_actions.addAction("Play")
-        context_actions.addAction("Delete", self.__delete_selected_segments)
+        selected_count = len(self.listwidget_captures.selectedItems())
+        context_actions.addAction(f"Delete Selection ({selected_count})", self._delete_selected_segments)
 
         context_actions.exec(global_pos)
 
-    def __delete_selected_segments(self):
-        items = self.listwidget_captures.selectedItems()
-        for item in items:
-            self.__delete_segment(item)
+    def _update_label_timestamp(self, position):
+        # Update timestamp
+        self.label_video_position.setText('{0} / {1}'.format(timestamp_from_ms(position), timestamp_from_ms(self.media_player.duration())))
 
-        self.__update_capture_segments()
-
-    def __delete_segment(self, item):
-        # Remove from UI
-        index = self.listwidget_captures.row(item)
-        self.listwidget_captures.takeItem(index)
-        # Remove in captured frames too
-        self.annotation.frames.pop(index)
-
-    def __add_capture_segment(self, annotation, segment):
+    def _add_capture_segment(self, annotation, segment):
         count = self.listwidget_captures.count() + 1
         listwidget_item = QListWidgetItem(self.listwidget_captures)
 
-        seg_widget = CaptureSegmentWidget(
-            count, annotation, segment, listwidget_item)
-        seg_widget.play.connect(
-            lambda segment: self.seek_slider_position_changed(segment.start))
-        seg_widget.delete.connect(lambda item: self.__delete_segment(item))
+        seg_widget = CaptureSegmentWidget(count, annotation, segment, listwidget_item)
+        seg_widget.play.connect(lambda segment: self.seek_slider_position_changed(segment.start))
+        seg_widget.delete.connect(lambda item: self._delete_segment(item))
 
         listwidget_item.setSizeHint(seg_widget.sizeHint())
 
         self.listwidget_captures.addItem(listwidget_item)
-        self.listwidget_captures.setItemWidget(
-            listwidget_item, seg_widget)
+        self.listwidget_captures.setItemWidget(listwidget_item, seg_widget)
 
-    def __update_capture_segments(self):
+    def _update_capture_segments(self):
         # Refresh listview
         self.listwidget_captures.clear()
-        for f in self.annotation.frames:
-            self.__add_capture_segment(self.annotation.frames, f)
+        for f in self.annotation.segments:
+            self._add_capture_segment(self.annotation.segments, f)
+
+    def _delete_selected_segments(self):
+        items = self.listwidget_captures.selectedItems()
+        for item in items:
+            self._delete_segment(item)
+
+        self._update_capture_segments()
+
+    def _delete_segment(self, item):
+        # Remove from UI
+        index = self.listwidget_captures.row(item)
+        self.listwidget_captures.takeItem(index)
+        # Remove in captured frames too
+        self.annotation.segments.pop(index)

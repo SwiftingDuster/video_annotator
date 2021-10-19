@@ -13,13 +13,22 @@ class VideoAnnotationData:
         Constructor.
 
         :param path: Full path to video file.
-        :param res: Resolution of video represented by a tuple. (width, height)
         """
         self.foldername = os.path.dirname(full_path)
         self.filename = os.path.basename(full_path)
         self.fps, self.resolution, _ = get_video_metadata(full_path)
-        self.frames: List[VideoAnnotationSegment] = []
-        print(type(self.frames))
+        self._segments: List[VideoAnnotationSegment] = []
+
+    @property
+    def segments(self):
+        return sorted(self._segments, key=lambda f: f.start)
+
+    def add_segment(self, segment):
+        self._segments.append(segment)
+
+    def find_segment(self, position):
+        return [seg for seg in self._segments if
+                position >= seg.start and position <= seg.end]
 
     def frame_from_ms(self, ms: int):
         ms_per_frame = 1000 / self.fps
