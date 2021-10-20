@@ -35,9 +35,18 @@ class VideoAnnotationData:
     def add_segment(self, segment):
         self._segments.append(segment)
 
+    def find_next_segment(self, position):
+        """
+        Find the closest segment with start greater than position.
+        """
+        segments_after = list(filter(lambda s: position < s.start, self._segments))
+        if len(segments_after) > 0:
+            segments_after.sort(key=lambda s: s.start)
+            return segments_after[0]
+        return None
+
     def find_segment(self, position):
-        return [seg for seg in self._segments if
-                position >= seg.start and position <= seg.end]
+        return next((seg for seg in self._segments if position >= seg.start and position <= seg.end), None)
 
     def frame_from_ms(self, ms: int):
         ms_per_frame = 1000 / self.fps

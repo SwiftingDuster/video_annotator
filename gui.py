@@ -183,20 +183,21 @@ class Ui_MainWindow(QMainWindow):
         self.action_calc_agreement.triggered.connect(self.action_interagreement_click)
         self.about.triggered.connect(self.action_about_clicked)
 
+        self.button_play.clicked.connect(self.button_play_clicked)
         self.button_prev.clicked.connect(self.button_prev_clicked)
         self.button_next.clicked.connect(self.button_next_clicked)
-        self.button_play.clicked.connect(self.button_play_clicked)
-        self.seek_slider.sliderMoved.connect(self.seek_slider_position_changed)
-        self.volume_slider.sliderMoved.connect(self.volume_slider_position_changed)
-        self.media_player.stateChanged.connect(self.media_state_changed)
-        # self.media_player.mediaStatusChanged.connect(self.media_status_changed)
-        self.media_player.positionChanged.connect(self.media_position_changed)
-        self.media_player.durationChanged.connect(self.media_duration_changed)
-
         self.button_cap_start.clicked.connect(self.button_start_capture_clicked)
         self.button_cap_end.clicked.connect(self.button_end_capture_clicked)
         self.button_load.clicked.connect(self.button_load_clicked)
         self.button_export.clicked.connect(self.button_export_clicked)
+
+        self.seek_slider.sliderMoved.connect(self.seek_slider_position_changed)
+        self.seek_slider.valueChanged.connect(self.seek_slider_value_changed)
+        self.volume_slider.sliderMoved.connect(self.volume_slider_position_changed)
+
+        self.media_player.stateChanged.connect(self.media_state_changed)
+        self.media_player.positionChanged.connect(self.media_position_changed)
+        self.media_player.durationChanged.connect(self.media_duration_changed)
 
         self.listwidget_captures.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.listwidget_captures.customContextMenuRequested.connect(self.listwidget_captures_contextmenu_open)
@@ -251,10 +252,20 @@ class Ui_MainWindow(QMainWindow):
                 self.button_cap_start.setEnabled(True)
 
     def button_prev_clicked(self):
-        self.media_player.setPosition(self.media_player.position()-150)
+        new_pos = self.media_player.position() - 150
+        if self.capturing and self.annotation.find_segment(new_pos) is not None:
+            print("Entering segment")
+            return
+
+        self.media_player.setPosition(new_pos)
 
     def button_next_clicked(self):
-        self.media_player.setPosition(self.media_player.position()+150)
+        new_pos = self.media_player.position() + 150
+        if self.capturing and self.annotation.find_segment(new_pos) is not None:
+            print("Entering segment")
+            return
+
+        self.media_player.setPosition(new_pos)
 
     # [Event] Called when start capture button is clicked.
     def button_start_capture_clicked(self):
@@ -262,6 +273,11 @@ class Ui_MainWindow(QMainWindow):
         start_ms = self.media_player.position()
         self.capture = VideoAnnotationSegment(start_ms, 0)
         self.button_cap_start.setEnabled(False)
+
+        # Find the last valid position this segment can end
+        pos = self.media_player.position()
+        seg = self.annotation.find_next_segment(pos)
+        self.capture_max = self.media_player.duration() if seg == None else seg.start - 1
 
     # [Event] Called when end capture button is clicked.
     def button_end_capture_clicked(self):
@@ -316,6 +332,15 @@ class Ui_MainWindow(QMainWindow):
         # Update timestamp
         self._update_label_timestamp(position)
 
+    # [Event] Called when seek slider value changed due to dragging or setValue().
+    def seek_slider_value_changed(self, position):
+        if self.capturing:
+            # Restrict slider to valid values and not conflicting with existing segment.
+            if position < self.capture.start:
+                self.seek_slider.setValue(self.capture.start + 1)
+            elif position > self.capture_max:
+                self.seek_slider.setValue(self.capture_max)
+
     # [Event] Called when manually moving volume slider in UI.
     def volume_slider_position_changed(self, position):
         self.media_player.setVolume(position)
@@ -334,11 +359,6 @@ class Ui_MainWindow(QMainWindow):
                 self.style().standardIcon(QStyle.SP_MediaPlay))
             self.button_play.setText("Play")
 
-    # [Event] Called when status changes when loading new video.
-    # def media_status_changed(self, status: QMediaPlayer.MediaStatus):
-    #     if status == QMediaPlayer.MediaStatus.LoadedMedia or status == QMediaPlayer.MediaStatus.BufferedMedia:
-    #         pass
-
     # [Event] Called every "notify interval" miliseconds when mediaplayer is playing.
     def media_position_changed(self, position):
         # Update seek slider progress
@@ -347,10 +367,9 @@ class Ui_MainWindow(QMainWindow):
         self._update_label_timestamp(position)
 
         # Highlight segment in list if its currently playing
-        segs = self.annotation.find_segment(position)
-        if len(segs) > 0:
+        seg = self.annotation.find_segment(position)
+        if seg is not None:
             self.is_highlighting = True
-            seg = segs[0]
             item = self.seg_to_listwidget[seg]
             self.listwidget_captures.setCurrentItem(item)
         else:
@@ -358,15 +377,29 @@ class Ui_MainWindow(QMainWindow):
                 self.is_highlighting = False
                 self.listwidget_captures.setCurrentIndex(QModelIndex())
 
-        # When capturing, update enabled state of end capture button based on whether end frame is after start frame.
+        # Update enabled state of capture buttons.
         if self.capturing:
+            # If we encounter another segment while capturing, go to max end value and pause video
+            if self.is_highlighting:
+                self.is_highlighting = False  # Prevent highlight getting cleared when seeking back
+                self.media_player.setPosition(self.capture_max)
+                self.media_player.pause()
             # Prevent capture from ending if end frame is earlier than start. (Dragging slider back)
-            if self.capture.start < self.media_player.position():
+            start_bef_end = self.capture.start < self.media_player.position()
+            if start_bef_end:
                 if not self.button_cap_end.isEnabled():
                     self.button_cap_end.setEnabled(True)
             else:
                 if self.button_cap_end.isEnabled():
                     self.button_cap_end.setEnabled(False)
+        else:
+            # Prevent capture from starting if the current position is contained in captured segments
+            if not self.is_highlighting:
+                if not self.button_cap_start.isEnabled():
+                    self.button_cap_start.setEnabled(True)
+            else:
+                if self.button_cap_start.isEnabled():
+                    self.button_cap_start.setEnabled(False)
 
     # [Event] Called when the total duration of the video changes, such as opening a new video file.
     def media_duration_changed(self, duration):
