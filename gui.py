@@ -275,18 +275,13 @@ class Ui_MainWindow(QMainWindow):
         self.button_cap_start.setEnabled(False)
 
         # Find the last valid position this segment can end
-        pos = self.media_player.position()
-        seg = self.annotation.find_next_segment(pos)
-        self.capture_max = self.media_player.duration() if seg == None else seg.start - 1
+        seg = self.annotation.find_next_segment(self.media_player.position())
+        frame_time = 1000 / self.annotation.fps  # Subtract frame time to end at previous frame
+        self.capture_max = self.media_player.duration() if seg == None else (seg.start - frame_time)
 
     # [Event] Called when end capture button is clicked.
     def button_end_capture_clicked(self):
         self.capture.end = self.media_player.position()
-
-        if self.capturing and self.capture.start > self.capture.end:
-            # Prevent capture from ending if frame end is earlier than start. (Dragging slider back)
-            return
-
         self.annotation.add_segment(self.capture)
 
         # Update UI state
