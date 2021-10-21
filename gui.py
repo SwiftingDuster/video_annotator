@@ -12,6 +12,7 @@ from agreementdialog import AgreementDialog
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms
 from widgets.capture_segment_widget import CaptureSegmentWidget
+from widgets.bounding_box_widget import BoundingBoxWidget, BBVideoWidget
 from xmlHandler import XMLhandler
 
 
@@ -37,7 +38,8 @@ class Ui_MainWindow(QMainWindow):
         self.upper_h_layout = QHBoxLayout()
 
         # == Video player ==
-        self.video_player_widget = QVideoWidget()
+        self.video_player_widget = BBVideoWidget()
+        self.bounding_box_widget = BoundingBoxWidget(self.video_player_widget)
         self.upper_h_layout.addWidget(self.video_player_widget)
         # Backend media player
         self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
