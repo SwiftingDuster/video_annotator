@@ -9,6 +9,7 @@ from utility import timestamp_from_ms
 
 class CaptureSegmentWidget(QWidget):
     play = pyqtSignal(VideoAnnotationSegment)
+    bound_box = pyqtSignal(VideoAnnotationSegment)
     delete = pyqtSignal(QListWidgetItem)
 
     def __init__(self, number, annotation: VideoAnnotationData, segment: VideoAnnotationSegment, widget_item: QListWidgetItem):
@@ -27,27 +28,29 @@ class CaptureSegmentWidget(QWidget):
         # Buttons on the right
         self.v_box_right_layout = QVBoxLayout()
         self.button_play = QPushButton()
+        self.button_boundbox = QPushButton()
         self.button_delete = QPushButton()
         self.v_box_right_layout.addWidget(self.button_play)
+        self.v_box_right_layout.addWidget(self.button_boundbox)
         self.v_box_right_layout.addWidget(self.button_delete)
 
         self.h_box_layout.addLayout(self.v_box_left_layout)
         self.h_box_layout.addLayout(self.v_box_right_layout)
         self.setLayout(self.h_box_layout)
 
-        self.button_play.setIcon(self.style().standardIcon(
-            QStyle.StandardPixmap.SP_MediaPlay))
-        self.button_delete.setIcon(self.style().standardIcon(
-            QStyle.StandardPixmap.SP_TrashIcon))
+        self.button_play.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
+        self.button_boundbox.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop))
+        self.button_delete.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon))
 
         # Make buttons have fixed width
-        policy = QSizePolicy(QSizePolicy.Policy.Fixed,
-                             QSizePolicy.Policy.Preferred)
+        policy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
         policy.setWidthForHeight(True)
         self.button_play.setSizePolicy(policy)
+        self.button_boundbox.setSizePolicy(policy)
         self.button_delete.setSizePolicy(policy)
 
         self.button_play.clicked.connect(self.button_play_clicked)
+        self.button_boundbox.clicked.connect(self.button_boundbox_clicked)
         self.button_delete.clicked.connect(self.button_delete_clicked)
 
         self.number = number
@@ -66,6 +69,9 @@ class CaptureSegmentWidget(QWidget):
 
     def button_play_clicked(self):
         self.play.emit(self.segment)
+
+    def button_boundbox_clicked(self):
+        self.bound_box.emit(self.segment)
 
     def button_delete_clicked(self):
         self.delete.emit(self.item)

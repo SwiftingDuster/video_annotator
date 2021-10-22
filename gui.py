@@ -1,8 +1,9 @@
 from PyQt5.QtCore import (QCoreApplication, QDir, QMetaObject, QModelIndex,
                           QRect, Qt, QUrl)
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
+from PyQt5.QtMultimedia import (QMediaContent, QMediaPlayer, QVideoFrame,
+                                QVideoProbe)
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import (QAbstractItemView, QAction, QDialog, QFileDialog,
+from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
                              QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QMessageBox,
                              QPushButton, QSlider, QStatusBar, QStyle,
@@ -11,8 +12,8 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QDialog, QFileDialog,
 from agreementdialog import AgreementDialog
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms
+from widgets.bounding_box_widget import BoundingBoxDialog
 from widgets.capture_segment_widget import CaptureSegmentWidget
-from widgets.bounding_box_widget import BoundingBoxWidget, BBVideoWidget
 from xmlHandler import XMLhandler
 
 
@@ -38,8 +39,8 @@ class Ui_MainWindow(QMainWindow):
         self.upper_h_layout = QHBoxLayout()
 
         # == Video player ==
-        self.video_player_widget = BBVideoWidget()
-        self.bounding_box_widget = BoundingBoxWidget(self.video_player_widget)
+        self.video_player_widget = QVideoWidget()
+        #self.bounding_box_widget = BoundingBoxWidget(self.video_player_widget)
         self.upper_h_layout.addWidget(self.video_player_widget)
         # Backend media player
         self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
@@ -229,6 +230,7 @@ class Ui_MainWindow(QMainWindow):
 
     def action_interagreement_click(self):
         self.dialog = AgreementDialog()
+        self.dialog.setWindowFlag(Qt.WindowType.Window)
         self.dialog.show()
 
     def action_about_clicked(self):
@@ -427,12 +429,25 @@ class Ui_MainWindow(QMainWindow):
         # Update timestamp
         self.label_video_position.setText('{0} / {1}'.format(timestamp_from_ms(position), timestamp_from_ms(self.media_player.duration())))
 
+    def _get_frame(self, segment: VideoAnnotationSegment):
+        self.media_player.setPosition(segment.start)
+        self.probe = QVideoProbe()
+        self.probe.setSource(self.media_player)
+        self.probe.videoFrameProbed.connect(self._process_frame)
+
+    def _process_frame(self, frame: QVideoFrame):
+        self.probe.videoFrameProbed.disconnect(self._process_frame)
+        self.media_player.pause()
+        self.bb_window = BoundingBoxDialog(frame.image())
+        self.bb_window.exec()
+
     def _add_capture_segment(self, annotation, segment):
         count = self.listwidget_captures.count() + 1
         listwidget_item = QListWidgetItem(self.listwidget_captures)
 
         seg_widget = CaptureSegmentWidget(count, annotation, segment, listwidget_item)
         seg_widget.play.connect(lambda segment: self.seek_slider_position_changed(segment.start))
+        seg_widget.bound_box.connect(self._get_frame)
         seg_widget.delete.connect(lambda item: self._delete_segment(item))
 
         listwidget_item.setSizeHint(seg_widget.sizeHint())
