@@ -436,13 +436,15 @@ class Ui_MainWindow(QMainWindow):
         self.probe = QVideoProbe()
         self.probe.setSource(self.media_player)
         self.probe.videoFrameProbed.connect(self._process_frame)
-        print(segment.start)
 
     def _process_frame(self, frame: QVideoFrame):
         self.probe.videoFrameProbed.disconnect(self._process_frame)
         self.media_player.pause()
-        self.bb_window = BoundingBoxDialog(frame.image())
-        self.bb_window.finished.connect(lambda boxes: self._save_bbox(frame, boxes))
+        pos = frame.startTime() // 1000  # startTime() returns microseconds
+        seg = self.annotation.find_segment(pos)
+        print(seg.boxes)
+        self.bb_window = BoundingBoxDialog(frame.image(), seg.boxes)
+        self.bb_window.finished.connect(lambda new_boxes: self._save_bbox(frame, new_boxes))
         self.bb_window.exec()
 
     def _save_bbox(self, frame: QVideoFrame, boxes: list[QRect]):

@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QDialog, QHBoxLayout, QLabel, QMessageBox,
 class BBImageLabel(QLabel):
     draw_state = pyqtSignal(bool)
 
-    def __init__(self, image):
+    def __init__(self, image, current_boxes: list[QRect]):
         super().__init__()
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -18,7 +18,7 @@ class BBImageLabel(QLabel):
 
         self.drawing = False
         self.box_rect = None
-        self.boxes: list[QRectF] = []
+        self.boxes = [] if current_boxes is None else [self.image_to_ratio(b) for b in current_boxes]
 
     def toggle_draw(self):
         self.drawing = not self.drawing
@@ -55,18 +55,27 @@ class BBImageLabel(QLabel):
         # Normalize returns a rect with non negative width/height.
         return QRect(start, end).normalized()
 
-    def _view_to_ratio(self, box: QRect):
+    def _view_to_ratio(self, box: QRect, relative_size: QSize = None):
+        if relative_size is not None:
+            view_w = relative_size.width()
+            view_h = relative_size.height()
+        else:
+            view_w = self.width()
+            view_h = self.height()
         tl = box.topLeft()
         br = box.bottomRight()
-        view_w = self.width()
-        view_h = self.height()
         ratio_box = QRectF()
         ratio_box.setTopLeft(QPointF(tl.x() / view_w, tl.y() / view_h))
         ratio_box.setBottomRight(QPointF(br.x() / view_w, br.y() / view_h))
         return ratio_box
 
-    def _ratio_to_view(self, ratio_box: QRectF):
-        view_w = self.width()
+    def _ratio_to_view(self, ratio_box: QRectF, relative_size: QSize = None):
+        if relative_size is not None:
+            view_w = relative_size.width()
+            view_h = relative_size.height()
+        else:
+            view_w = self.width()
+            view_h = self.height()
         view_h = self.height()
         tl = ratio_box.topLeft()
         br = ratio_box.bottomRight()
@@ -75,21 +84,17 @@ class BBImageLabel(QLabel):
         box.setBottomRight(QPoint(round(br.x() * view_w), round(br.y() * view_h)))
         return box
 
+    def image_to_ratio(self, box: QRect):
+        image_size = QSize(self.image.width(), self.image.height())
+        return self._view_to_ratio(box, image_size)
+
     def ratio_to_image(self, ratio_box: QRectF):
-        view_w = self.image.width()
-        view_h = self.image.height()
-        tl = ratio_box.topLeft()
-        br = ratio_box.bottomRight()
-        box = QRect()
-        box.setTopLeft(QPoint(round(tl.x() * view_w), round(tl.y() * view_h)))
-        box.setBottomRight(QPoint(round(br.x() * view_w), round(br.y() * view_h)))
-        return box
+        image_size = QSize(self.image.width(), self.image.height())
+        return self._ratio_to_view(ratio_box, image_size)
 
     def mousePressEvent(self, e: QMouseEvent):
         if self.drawing and e.button() == Qt.MouseButton.LeftButton:
             self.box_start = e.pos()
-            #self.box_rect = self._view_to_ratio(self._get_rect(self.box_start, self.box_start))
-            # self.update()
 
     def mouseMoveEvent(self, e):
         if self.drawing:
@@ -110,14 +115,14 @@ class BBImageLabel(QLabel):
 class BoundingBoxDialog(QDialog):
     finished = pyqtSignal(list)
 
-    def __init__(self, image):
+    def __init__(self, image, boxes):
         super().__init__()
 
         self.setWindowTitle("Bounding Box")
 
         #self.label_title = QLabel("Enclose position(s) of smoking incident with bounding box.")
         #self.label_title.setStyleSheet("font-weight: bold;font-size: 16px;")
-        self.label_image = BBImageLabel(image)
+        self.label_image = BBImageLabel(image, boxes)
 
         self.lower_h_layout = QHBoxLayout()
         self.button_finish = QPushButton("Finish")
