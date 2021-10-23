@@ -9,12 +9,12 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
                              QPushButton, QSlider, QStatusBar, QStyle,
                              QTextEdit, QVBoxLayout, QWidget)
 
-from agreementdialog import AgreementDialog
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms
-from widgets.bounding_box_widget import BoundingBoxDialog
-from widgets.capture_segment_widget import CaptureSegmentWidget
-from xmlHandler import XMLhandler
+from widgets.agreementdialog import AgreementDialog
+from widgets.boundingbox import BoundingBoxDialog
+from widgets.capturesegment import CaptureSegmentWidget
+from xmlutils import XMLUtils
 
 
 class Ui_MainWindow(QMainWindow):
@@ -299,7 +299,7 @@ class Ui_MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(
             None, 'Load Annotations', QDir.homePath(), 'XML Files (*.xml)')
         if file_path:
-            annotation = XMLhandler.loadXML(file_path)
+            annotation = XMLUtils.loadXML(file_path)
             if annotation.fps != self.annotation.fps or annotation.resolution != self.annotation.resolution:
                 # Annotation data wrong
                 prompt = QMessageBox()
@@ -324,7 +324,7 @@ class Ui_MainWindow(QMainWindow):
             a = self.annotation
             if not file_path.endswith(".xml"):
                 file_path += ".xml"
-            xmlinput = XMLhandler(a.filename, file_path)
+            xmlinput = XMLUtils(a.filename, file_path)
             xmlinput.saveXML(a.foldername, str(a.resolution[0]), str(a.resolution[1]), str(a.fps), a.segments)
 
     # [Event] Called when manually moving seek slider in UI.

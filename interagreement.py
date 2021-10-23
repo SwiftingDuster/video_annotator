@@ -1,7 +1,8 @@
 # interagreement.py defines functions to
-from pygamma_agreement import Continuum, PositionalSporadicDissimilarity
-from pyannote.core import Segment
 import xml.etree.ElementTree as ET
+
+from pyannote.core import Segment
+from pygamma_agreement import Continuum, PositionalSporadicDissimilarity
 
 # Initialize InterAgreement class with input of a list of xml
 # .computeGamma() to calculate inter-annotator agreement
@@ -63,8 +64,8 @@ class InterAgreement:
                     j = 1
         return framepair
 
-    def getFileName(self,path):
-        i=-1
+    def getFileName(self, path):
+        i = -1
         while True:
             if path[i] != '/':
                 i -= 1

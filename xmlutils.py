@@ -5,7 +5,7 @@ from PyQt5.QtCore import QPoint, QRect
 from models import VideoAnnotationData, VideoAnnotationSegment
 
 
-class XMLhandler:
+class XMLUtils:
 
     def __init__(self, filename, path):
         self.filename = filename
@@ -32,15 +32,19 @@ class XMLhandler:
         fps = int(xml.find("fps").text)
         res_w = int(xml.find("size").find("width").text)
         res_h = int(xml.find("size").find("height").text)
-        for e in xml.find("segments").findall("segment"):
-            start = int(e.find("start").text)
-            end = int(e.find("end").text)
-            boxes = []
-            for b in e.find("boxes").findall("box"):
-                tlX, tlY = int(b.find("tlX").text), int(b.find("tlY").text)
-                brX, brY = int(b.find("brX").text), int(b.find("brY").text)
-                boxes.append(QRect(QPoint(tlX, tlY), QPoint(brX, brY)))
-            data.add_segment(VideoAnnotationSegment(start, end, boxes))
+        segments_element = xml.find("segments")
+        if segments_element is not None:
+            for e in xml.find("segments").findall("segment"):
+                start = int(e.find("start").text)
+                end = int(e.find("end").text)
+                boxes = []
+                boxes_element = e.find("boxes")
+                if boxes_element is not None:
+                    for b in boxes_element.findall("box"):
+                        tlX, tlY = int(b.find("tlX").text), int(b.find("tlY").text)
+                        brX, brY = int(b.find("brX").text), int(b.find("brY").text)
+                        boxes.append(QRect(QPoint(tlX, tlY), QPoint(brX, brY)))
+                data.add_segment(VideoAnnotationSegment(start, end, boxes))
 
         data.foldername = folder
         data.filename = file
@@ -175,7 +179,7 @@ class XMLhandler:
 
 if __name__ == "__main__":
     # example: modifying foldername to file1
-    xmlinput = XMLhandler("testxml.xml")
+    xmlinput = XMLUtils("testxml.xml")
 
     # if you want to generate a XML file structure
     # with dummy data, use the function below
