@@ -34,20 +34,22 @@ class CaptureSegmentWidget(QWidget):
         self.v_box_right_layout.addWidget(self.button_boundbox)
         self.v_box_right_layout.addWidget(self.button_delete)
 
-        self.h_box_layout.addLayout(self.v_box_left_layout)
-        self.h_box_layout.addLayout(self.v_box_right_layout)
+        self.h_box_layout.addLayout(self.v_box_left_layout, 4)
+        self.h_box_layout.addLayout(self.v_box_right_layout, 1)
         self.setLayout(self.h_box_layout)
 
+        # Button icons and size
         self.button_play.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
-        self.button_boundbox.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop))
+        # self.button_boundbox.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop))
+        self.button_boundbox.setText("BB")
         self.button_delete.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon))
-
-        # Make buttons have fixed width
-        policy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-        policy.setWidthForHeight(True)
+        policy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
         self.button_play.setSizePolicy(policy)
         self.button_boundbox.setSizePolicy(policy)
         self.button_delete.setSizePolicy(policy)
+        self.button_play.setMaximumWidth(32)
+        self.button_boundbox.setMaximumWidth(32)
+        self.button_delete.setMaximumWidth(32)
 
         self.button_play.clicked.connect(self.button_play_clicked)
         self.button_boundbox.clicked.connect(self.button_boundbox_clicked)

@@ -56,12 +56,8 @@ class BBImageLabel(QLabel):
         return QRect(start, end).normalized()
 
     def _view_to_ratio(self, box: QRect, relative_size: QSize = None):
-        if relative_size is not None:
-            view_w = relative_size.width()
-            view_h = relative_size.height()
-        else:
-            view_w = self.width()
-            view_h = self.height()
+        view_w = self.width() if relative_size is None else relative_size.width()
+        view_h = self.height() if relative_size is None else relative_size.height()
         tl = box.topLeft()
         br = box.bottomRight()
         ratio_box = QRectF()
@@ -70,13 +66,8 @@ class BBImageLabel(QLabel):
         return ratio_box
 
     def _ratio_to_view(self, ratio_box: QRectF, relative_size: QSize = None):
-        if relative_size is not None:
-            view_w = relative_size.width()
-            view_h = relative_size.height()
-        else:
-            view_w = self.width()
-            view_h = self.height()
-        view_h = self.height()
+        view_w = self.width() if relative_size is None else relative_size.width()
+        view_h = self.height() if relative_size is None else relative_size.height()
         tl = ratio_box.topLeft()
         br = ratio_box.bottomRight()
         box = QRect()
@@ -85,12 +76,10 @@ class BBImageLabel(QLabel):
         return box
 
     def image_to_ratio(self, box: QRect):
-        image_size = QSize(self.image.width(), self.image.height())
-        return self._view_to_ratio(box, image_size)
+        return self._view_to_ratio(box, self.image.size())
 
     def ratio_to_image(self, ratio_box: QRectF):
-        image_size = QSize(self.image.width(), self.image.height())
-        return self._ratio_to_view(ratio_box, image_size)
+        return self._ratio_to_view(ratio_box, self.image.size())
 
     def mousePressEvent(self, e: QMouseEvent):
         if self.drawing and e.button() == Qt.MouseButton.LeftButton:
