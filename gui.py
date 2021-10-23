@@ -322,6 +322,8 @@ class Ui_MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getSaveFileName(None, 'Export PASCAL VOL', QDir.currentPath(), 'XML files (*.xml)')
         if file_path:
             a = self.annotation
+            if not file_path.endswith(".xml"):
+                file_path += ".xml"
             xmlinput = XMLhandler(a.filename, file_path)
             xmlinput.saveXML(a.foldername, str(a.resolution[0]), str(a.resolution[1]), str(a.fps), a.segments)
 

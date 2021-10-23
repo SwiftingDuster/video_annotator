@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as ET
 
+from PyQt5.QtCore import QPoint, QRect
+
 from models import VideoAnnotationData, VideoAnnotationSegment
 
 
@@ -33,7 +35,12 @@ class XMLhandler:
         for e in xml.find("segments").findall("segment"):
             start = int(e.find("start").text)
             end = int(e.find("end").text)
-            data.add_segment(VideoAnnotationSegment(start, end))
+            boxes = []
+            for b in e.find("boxes").findall("box"):
+                tlX, tlY = int(b.find("tlX").text), int(b.find("tlY").text)
+                brX, brY = int(b.find("brX").text), int(b.find("brY").text)
+                boxes.append(QRect(QPoint(tlX, tlY), QPoint(brX, brY)))
+            data.add_segment(VideoAnnotationSegment(start, end, boxes))
 
         data.foldername = folder
         data.filename = file
@@ -95,7 +102,6 @@ class XMLhandler:
         segments = ET.SubElement(root, f"segments")
 
         for item in self.segmented_value:
-
             start, end = item.start, item.end
 
             segment = ET.SubElement(segments, f"segment")
@@ -103,6 +109,17 @@ class XMLhandler:
             framestart.text = str(start)
             frameend = ET.SubElement(segment, "end")
             frameend.text = str(end)
+            boxes = ET.SubElement(segment, "boxes")
+            for b in item.boxes:
+                box = ET.SubElement(boxes, "box")
+                topleftX = ET.SubElement(box, "tlX")
+                topleftX.text = str(b.topLeft().x())
+                topleftY = ET.SubElement(box, "tlY")
+                topleftY.text = str(b.topLeft().y())
+                bottomrightX = ET.SubElement(box, "brX")
+                bottomrightX.text = str(b.bottomRight().x())
+                bottomrightY = ET.SubElement(box, "brY")
+                bottomrightY.text = str(b.bottomRight().y())
 
             # for item in range(len(self.segmented_value)):
             #     segmented = ET.SubElement(root, f"segmented{item + 1}")
@@ -151,7 +168,7 @@ class XMLhandler:
 
         tree = ET.ElementTree(root)
         ET.indent(tree, space="\t", level=0)
-        ET.dump(root)
+        # ET.dump(root)
 
         tree.write(self.path, encoding="utf-8")
 
