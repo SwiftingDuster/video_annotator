@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
                              QMainWindow, QMenu, QMenuBar, QMessageBox,
                              QPushButton, QSlider, QStatusBar, QStyle,
                              QTextEdit, QVBoxLayout, QWidget)
+from framegrabber import FrameGrabber
 
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms
@@ -40,11 +41,11 @@ class Ui_MainWindow(QMainWindow):
 
         # == Video player ==
         self.video_player_widget = QVideoWidget()
-        #self.bounding_box_widget = BoundingBoxWidget(self.video_player_widget)
+        self.frame_grabber = FrameGrabber(self)
         self.upper_h_layout.addWidget(self.video_player_widget)
         # Backend media player
         self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
-        self.media_player.setVideoOutput(self.video_player_widget)
+        self.media_player.setVideoOutput([self.video_player_widget.videoSurface(), self.frame_grabber])
         self.media_player.setNotifyInterval(10)
 
         # == Information Panel ==
@@ -432,17 +433,16 @@ class Ui_MainWindow(QMainWindow):
         self.label_video_position.setText('{0} / {1}'.format(timestamp_from_ms(position), timestamp_from_ms(self.media_player.duration())))
 
     def _get_frame(self, segment: VideoAnnotationSegment):
+        # Seek to segment start and get video frame
         self.media_player.setPosition(segment.start)
-        self.probe = QVideoProbe()
-        self.probe.setSource(self.media_player)
-        self.probe.videoFrameProbed.connect(self._process_frame)
+        self.frame_grabber.frameAvailable.connect(self._process_frame)
 
     def _process_frame(self, frame: QVideoFrame):
-        self.probe.videoFrameProbed.disconnect(self._process_frame)
+        # Retrieved frame is used for bounding box drawing
+        self.frame_grabber.frameAvailable.disconnect(self._process_frame)
         self.media_player.pause()
         pos = frame.startTime() // 1000  # startTime() returns microseconds
         seg = self.annotation.find_segment(pos)
-        print(seg.boxes)
         self.bb_window = BoundingBoxDialog(frame.image(), seg.boxes)
         self.bb_window.finished.connect(lambda new_boxes: self._save_bbox(frame, new_boxes))
         self.bb_window.exec()
