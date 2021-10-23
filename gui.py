@@ -139,7 +139,7 @@ class Ui_MainWindow(QMainWindow):
         self.menu_file.addAction(self.about)
         self.menubar.addAction(self.menu_file.menuAction())
 
-        self.retranslateUi(self)
+        self.retranslateUi()
         QMetaObject.connectSlotsByName(self)
 
         # Setup UI state
@@ -154,9 +154,9 @@ class Ui_MainWindow(QMainWindow):
         self.volume_slider.setEnabled(False)
         self.listwidget_captures.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self):
         _translate = QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Video Annotator"))
+        self.setWindowTitle(_translate("MainWindow", "Video Annotator"))
         self.label_videoinfo.setText(_translate("MainWindow", "Video Information"))
         self.label_capture_frames.setText(_translate("MainWindow", "Captured Frames"))
         self.button_cap_start.setText(_translate("MainWindow", "Capture Start (Z)"))
@@ -439,7 +439,11 @@ class Ui_MainWindow(QMainWindow):
         self.probe.videoFrameProbed.disconnect(self._process_frame)
         self.media_player.pause()
         self.bb_window = BoundingBoxDialog(frame.image())
+        self.bb_window.finished.connect(self._save_bbox)
         self.bb_window.exec()
+
+    def _save_bbox(self, boxes: list[QRect]):
+        print(boxes)
 
     def _add_capture_segment(self, annotation, segment):
         count = self.listwidget_captures.count() + 1

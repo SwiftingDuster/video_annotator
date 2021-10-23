@@ -1,14 +1,11 @@
-from typing import List
-
-from PyQt5.QtCore import QPoint, QRect, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QColorConstants, QKeyEvent, QPainter, QPixmap
-from PyQt5.QtWidgets import (QDialog, QHBoxLayout, QLabel, QPushButton,
-                             QSizePolicy, QVBoxLayout)
+from PyQt5.QtCore import QPoint, QPointF, QRect, QRectF, QSize, Qt, pyqtSignal
+from PyQt5.QtGui import QColor, QMouseEvent, QPainter, QPixmap
+from PyQt5.QtWidgets import (QDialog, QHBoxLayout, QLabel, QMessageBox,
+                             QPushButton, QSizePolicy, QVBoxLayout)
 
 
 class BBImageLabel(QLabel):
     draw_state = pyqtSignal(bool)
-    #box_update = pyqtSignal(QPoint, QPoint)
 
     def __init__(self, image):
         super().__init__()
@@ -20,55 +17,91 @@ class BBImageLabel(QLabel):
         self.setPixmap(self.image)
 
         self.drawing = False
-
-        self.box_start = self.box_end = QPoint(0, 0)
+        self.box_rect = None
+        self.boxes: list[QRectF] = []
 
     def toggle_draw(self):
         self.drawing = not self.drawing
-        self.draw_state.emit(self.drawing)
+        if self.drawing:  # Start drawing
+            self.box_rect = QRectF()
+        else:  # End drawing
+            if self.box_rect.width() == 0 and self.box_rect.height() == 0:
+                # No box was drawn, don't do anything
+                print("No box")
+            elif self.box_rect.width() < 0.01 or self.box_rect.height() < 0.01:
+                self.drawing = True  # Don't end drawing
+                prompt = QMessageBox()
+                prompt.setWindowTitle("Error")
+                prompt.setText("Please draw a bigger box.")
+                prompt.exec()
+            else:
+                self.boxes.append(self.box_rect)
+                print(self.boxes)
 
-    def paintEvent(self, a0):
-        super().paintEvent(a0)
+        self.draw_state.emit(self.drawing)
+        self.update()
+
+    def paintEvent(self, e):
+        super().paintEvent(e)
+        painter = QPainter(self)
+        painter.setBrush(QColor(255, 0, 0, 20))
+        for box in self.boxes:
+            painter.drawRect(self._ratio_to_view(box))
         if self.drawing:
-            rect = self._get_rect(self.box_start, self.box_end)
-            painter = QPainter(self)
+            rect = self._ratio_to_view(self.box_rect)
             painter.setBrush(QColor(0, 255, 0, 20))
             painter.drawRect(rect)
 
-    def _get_rect(self, start: QPoint, end: QPoint):
-        x1, y1 = start.x(), start.y()
-        x2, y2 = end.x(), end.y()
+    def _get_box(self, start: QPoint, end: QPoint):
+        # Normalize returns a rect with non negative width/height.
+        return QRect(start, end).normalized()
 
-        if x1 > x2:
-            x1, x2 = x2, x1
-        if y1 > y2:
-            y1, y2 = y2, y1
+    def _view_to_ratio(self, box: QRect):
+        tl = box.topLeft()
+        br = box.bottomRight()
+        view_w = self.width()
+        view_h = self.height()
+        ratio_box = QRectF()
+        ratio_box.setTopLeft(QPointF(tl.x() / view_w, tl.y() / view_h))
+        ratio_box.setBottomRight(QPointF(br.x() / view_w, br.y() / view_h))
+        return ratio_box
 
-        width = abs(x1 - x2)
-        height = abs(y1 - y2)
+    def _ratio_to_view(self, ratio_box: QRectF):
+        view_w = self.width()
+        view_h = self.height()
+        tl = ratio_box.topLeft()
+        br = ratio_box.bottomRight()
+        box = QRect()
+        box.setTopLeft(QPoint(round(tl.x() * view_w), round(tl.y() * view_h)))
+        box.setBottomRight(QPoint(round(br.x() * view_w), round(br.y() * view_h)))
+        return box
 
-        return QRect(x1, y1, width, height)
+    def ratio_to_image(self, ratio_box: QRectF):
+        view_w = self.image.width()
+        view_h = self.image.height()
+        tl = ratio_box.topLeft()
+        br = ratio_box.bottomRight()
+        box = QRect()
+        box.setTopLeft(QPoint(round(tl.x() * view_w), round(tl.y() * view_h)))
+        box.setBottomRight(QPoint(round(br.x() * view_w), round(br.y() * view_h)))
+        return box
 
-    def mousePressEvent(self, e):
-        if self.drawing:
+    def mousePressEvent(self, e: QMouseEvent):
+        if self.drawing and e.button() == Qt.MouseButton.LeftButton:
             self.box_start = e.pos()
-            self.box_end = self.box_start
-            #self.box_update.emit(self.box_start, self.box_end)
-            self.update()
-            print('press', e.pos())
+            #self.box_rect = self._view_to_ratio(self._get_rect(self.box_start, self.box_start))
+            # self.update()
 
     def mouseMoveEvent(self, e):
         if self.drawing:
-            self.box_end = e.pos()
-            #self.box_update.emit(self.box_start, self.box_end)
+            box_end = e.pos()
+            self.box_rect = self._view_to_ratio(self._get_box(self.box_start, box_end))
             self.update()
 
-    # def keyPressEvent(self, e: QKeyEvent) -> None:
+    # def keyPressEvent(self, e):
     #     k = e.key()
-    #     if k == Qt.Key.Key_Return or k == Qt.Key.Key_Enter:
-    #         print("enter")
-    #     else:
-    #         print(e.key())
+    #     if k == Qt.Key.Key_Space:
+    #         self.toggle_draw()
 
     def resizeEvent(self, e):
         width, height = self.width(), self.height()
@@ -76,23 +109,25 @@ class BBImageLabel(QLabel):
 
 
 class BoundingBoxDialog(QDialog):
+    finished = pyqtSignal(list)
+
     def __init__(self, image):
         super().__init__()
 
         self.setWindowTitle("Bounding Box")
 
-        self.label_title = QLabel("Enclose position(s) of smoking incident with bounding box.")
-        self.label_title.setStyleSheet("font-weight: bold;font-size: 16px;")
+        #self.label_title = QLabel("Enclose position(s) of smoking incident with bounding box.")
+        #self.label_title.setStyleSheet("font-weight: bold;font-size: 16px;")
         self.label_image = BBImageLabel(image)
 
         self.lower_h_layout = QHBoxLayout()
-        self.button_confirm = QPushButton("Finish")
-        self.lower_h_layout.addWidget(self.button_confirm)
-        self.button_add_bbox = QPushButton("New bounding box")
+        self.button_finish = QPushButton("Finish")
+        self.lower_h_layout.addWidget(self.button_finish)
+        self.button_add_bbox = QPushButton()
         self.lower_h_layout.addWidget(self.button_add_bbox)
 
         self.main_v_layout = QVBoxLayout()
-        self.main_v_layout.addWidget(self.label_title)
+        # self.main_v_layout.addWidget(self.label_title)
         self.main_v_layout.addWidget(self.label_image)
         self.main_v_layout.addLayout(self.lower_h_layout)
         self.main_v_layout.setStretch(1, 2)
@@ -102,8 +137,22 @@ class BoundingBoxDialog(QDialog):
         self.setMinimumSize(size)
         self.resize(size)
 
+        self.button_finish.setDefault(True)
+        self._draw_state_changed(False)
+
+        self.button_finish.clicked.connect(self._button_finish)
         self.button_add_bbox.clicked.connect(self._button_add_bbox)
         self.label_image.draw_state.connect(self._draw_state_changed)
+
+    def _button_finish(self):
+        boxes = [self.label_image.ratio_to_image(b) for b in self.label_image.boxes]
+        self.accept()
+        self.finished.emit(boxes)
+
+    def keyPressEvent(self, e):
+        super().keyPressEvent(e)
+        if e.key() == Qt.Key.Key_B:
+            self._button_add_bbox()
 
     def _button_add_bbox(self):
         self.label_image.toggle_draw()
