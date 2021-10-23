@@ -1,8 +1,9 @@
 """This file stores object models used in the project"""
 
 import os
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field
+
+from PyQt5.QtCore import QRect
 
 from utility import get_video_metadata
 
@@ -15,7 +16,7 @@ class VideoAnnotationData:
         """
         self.foldername = self.filename = self.fps = ""
         self.resolution = 0, 0
-        self._segments: List[VideoAnnotationSegment] = []
+        self._segments: list[VideoAnnotationSegment] = []
 
     def load(self, video_path):
         """
@@ -26,7 +27,7 @@ class VideoAnnotationData:
         self.foldername = os.path.dirname(video_path)
         self.filename = os.path.basename(video_path)
         self.fps, self.resolution, _ = get_video_metadata(video_path)
-        self._segments: List[VideoAnnotationSegment] = []
+        self._segments: list[VideoAnnotationSegment] = []
 
     @property
     def segments(self):
@@ -55,8 +56,9 @@ class VideoAnnotationData:
 
 @dataclass
 class VideoAnnotationSegment:
-    start: int
-    end: int
+    start: int = 0
+    end: int = 0
+    boxes: list[QRect] = field(default_factory=list)
 
     def __hash__(self):
         return self.start

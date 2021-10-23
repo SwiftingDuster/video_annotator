@@ -275,7 +275,7 @@ class Ui_MainWindow(QMainWindow):
     def button_start_capture_clicked(self):
         self.capturing = True
         start_ms = self.media_player.position()
-        self.capture = VideoAnnotationSegment(start_ms, 0)
+        self.capture = VideoAnnotationSegment(start_ms)
         self.button_cap_start.setEnabled(False)
 
         # Find the last valid position this segment can end
@@ -434,16 +434,21 @@ class Ui_MainWindow(QMainWindow):
         self.probe = QVideoProbe()
         self.probe.setSource(self.media_player)
         self.probe.videoFrameProbed.connect(self._process_frame)
+        print(segment.start)
 
     def _process_frame(self, frame: QVideoFrame):
         self.probe.videoFrameProbed.disconnect(self._process_frame)
         self.media_player.pause()
         self.bb_window = BoundingBoxDialog(frame.image())
-        self.bb_window.finished.connect(self._save_bbox)
+        self.bb_window.finished.connect(lambda boxes: self._save_bbox(frame, boxes))
         self.bb_window.exec()
 
-    def _save_bbox(self, boxes: list[QRect]):
-        print(boxes)
+    def _save_bbox(self, frame: QVideoFrame, boxes: list[QRect]):
+        pos = frame.startTime() // 1000  # startTime() returns microseconds
+        seg = self.annotation.find_segment(pos)
+        if seg is not None:
+            seg.boxes = boxes
+        print(seg)
 
     def _add_capture_segment(self, annotation, segment):
         count = self.listwidget_captures.count() + 1

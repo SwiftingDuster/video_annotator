@@ -36,7 +36,6 @@ class BBImageLabel(QLabel):
                 prompt.exec()
             else:
                 self.boxes.append(self.box_rect)
-                print(self.boxes)
 
         self.draw_state.emit(self.drawing)
         self.update()
@@ -145,6 +144,9 @@ class BoundingBoxDialog(QDialog):
         self.label_image.draw_state.connect(self._draw_state_changed)
 
     def _button_finish(self):
+        if self.label_image.drawing:
+            self.label_image.toggle_draw()
+
         boxes = [self.label_image.ratio_to_image(b) for b in self.label_image.boxes]
         self.accept()
         self.finished.emit(boxes)
