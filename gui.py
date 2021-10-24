@@ -160,9 +160,9 @@ class Ui_MainWindow(QMainWindow):
         self.setWindowTitle(_translate("MainWindow", "Video Annotator"))
         self.label_videoinfo.setText(_translate("MainWindow", "Video Information"))
         self.label_capture_frames.setText(_translate("MainWindow", "Captured Frames"))
-        self.button_cap_start.setText(_translate("MainWindow", "Capture Start (Z)"))
+        self.button_cap_start.setText(_translate("MainWindow", "Start Capture (Z)"))
         self.button_cap_start.setShortcut(_translate("MainWindow", "Z"))
-        self.button_cap_end.setText(_translate("MainWindow", "Capture End (X)"))
+        self.button_cap_end.setText(_translate("MainWindow", "End Capture (X)"))
         self.button_cap_end.setShortcut(_translate("MainWindow", "X"))
         self.button_prev.setText(_translate("MainWindow", "Prev (N)"))
         self.button_prev.setShortcut(_translate("MainWindow", "N"))
@@ -444,7 +444,7 @@ class Ui_MainWindow(QMainWindow):
         pos = frame.startTime() // 1000  # startTime() returns microseconds
         seg = self.annotation.find_segment(pos)
         self.bb_window = BoundingBoxDialog(frame.image(), seg.boxes)
-        self.bb_window.finished.connect(lambda new_boxes: self._save_bbox(frame, new_boxes))
+        self.bb_window.finish.connect(lambda boxes: self._save_bbox(frame, boxes))
         self.bb_window.exec()
 
     def _save_bbox(self, frame: QVideoFrame, boxes: list[QRect]):

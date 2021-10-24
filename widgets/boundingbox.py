@@ -102,7 +102,7 @@ class BBImageLabel(QLabel):
 
 
 class BoundingBoxDialog(QDialog):
-    finished = pyqtSignal(list)
+    finish = pyqtSignal(list)
 
     def __init__(self, image, boxes):
         super().__init__()
@@ -143,7 +143,7 @@ class BoundingBoxDialog(QDialog):
 
         boxes = [self.label_image.ratio_to_image(b) for b in self.label_image.boxes]
         self.accept()
-        self.finished.emit(boxes)
+        self.finish.emit(boxes)
 
     def keyPressEvent(self, e):
         super().keyPressEvent(e)
