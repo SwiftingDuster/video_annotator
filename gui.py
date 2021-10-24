@@ -16,6 +16,7 @@ from widgets.agreementdialog import AgreementDialog
 from widgets.boundingbox import BoundingBoxDialog
 from widgets.capturesegment import CaptureSegmentWidget
 from xmlutils import XMLUtils
+from segmentbar import WSegmentBar
 
 
 class Ui_MainWindow(QMainWindow):
@@ -43,6 +44,8 @@ class Ui_MainWindow(QMainWindow):
         self.video_player_widget = QVideoWidget()
         self.frame_grabber = FrameGrabber(self)
         self.upper_h_layout.addWidget(self.video_player_widget)
+        self.video_player_widget.setStyleSheet('background-color: black')
+
         # Backend media player
         self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
         self.media_player.setVideoOutput([self.video_player_widget.videoSurface(), self.frame_grabber])
@@ -94,9 +97,13 @@ class Ui_MainWindow(QMainWindow):
         self.label_video_position = QLabel()
         self.lower_h_layout.addWidget(self.label_video_position)
         # Video seekbar
+        self.segbar = WSegmentBar()
+        self.seek_layout = QVBoxLayout()
+        self.seek_layout.addWidget(self.segbar)
         self.seek_slider = QSlider()
         self.seek_slider.setOrientation(Qt.Horizontal)
-        self.lower_h_layout.addWidget(self.seek_slider)
+        self.seek_layout.addWidget(self.seek_slider)
+        self.lower_h_layout.addLayout(self.seek_layout)
         # Volume slider
         vol_box = QHBoxLayout()
         self.volume_slider = QSlider()
@@ -228,6 +235,8 @@ class Ui_MainWindow(QMainWindow):
             self.button_prev.setEnabled(True)
             self.button_next.setEnabled(True)
             self.button_load.setEnabled(True)
+
+            self.segbar.setData(self.annotation, self.media_player.duration())
 
     def action_interagreement_click(self):
         self.dialog = AgreementDialog()
@@ -469,11 +478,17 @@ class Ui_MainWindow(QMainWindow):
         self.listwidget_captures.setItemWidget(listwidget_item, seg_widget)
         self.seg_to_listwidget[segment] = listwidget_item
 
+        self.segbar.setData(self.annotation, self.media_player.duration())
+        self.segbar.refresh()
+
     def _update_capture_segments(self):
         # Refresh listview
         self.listwidget_captures.clear()
         for s in self.annotation.segments:
             self._add_capture_segment(self.annotation, s)
+
+        self.segbar.setData(self.annotation, self.media_player.duration())
+        self.segbar.refresh()
 
     def _delete_selected_segments(self):
         items = self.listwidget_captures.selectedItems()
@@ -481,6 +496,9 @@ class Ui_MainWindow(QMainWindow):
             self._delete_segment(item)
 
         self._update_capture_segments()
+
+        self.segbar.setData(self.annotation, self.media_player.duration())
+        self.segbar.refresh()
 
     def _delete_segment(self, item):
         # Remove from UI
