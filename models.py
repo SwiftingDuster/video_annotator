@@ -31,7 +31,8 @@ class VideoAnnotationData:
 
     @property
     def segments(self):
-        return sorted(self._segments, key=lambda f: f.start)
+        self._segments.sort(key=lambda f: f.start)
+        return self._segments
 
     def add_segment(self, segment):
         self._segments.append(segment)
