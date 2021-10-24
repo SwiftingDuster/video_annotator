@@ -30,28 +30,35 @@ class WSegmentBar(QWidget):
         rect = QRect(0, 0, painter.device().width(), painter.device().height())
         painter.fillRect(rect, brush)
 
-        self.drawSegmentBlocks(painter, brush, self.annotation, self.duration)
+        self.drawSegmentBlocks(painter, brush, self.annotation, self.duration, self.position)
 
-    def drawSegmentBlocks(self, painter, brush, annotation:VideoAnnotationData, duration):
+    def drawSegmentBlocks(self, painter, brush, annotation:VideoAnnotationData, duration, position):
         padding = 5
-        brush.setColor(QColor('red'))
+        brush.setColor(QColor('orange'))
         d_width = painter.device().width() - 2 * padding
         d_height = painter.device().height()
         for segment in annotation._segments:
             leftpos = int(segment.start / duration * d_width + padding)  # pos from left, pix from left/wdiget width = time at start/duration (ms)
-            rectwidth = int((segment.end - segment.start)/duration*d_width) # segment rectangle width
+            rectwidth = int((segment.end - segment.start) / duration * d_width) # segment rectangle width
             if rectwidth < 1:
                 rectwidth = 1
-            rect = QRect(leftpos, 0, rectwidth, d_height)
-            painter.fillRect(rect, brush)
+            segbox = QRect(leftpos, 0, rectwidth, d_height)
+            painter.fillRect(segbox, brush)
+
+        brush.setColor(QColor('black'))
+        posTick = QRect(padding + position/duration * d_width, 0, 1, d_height)
+        painter.fillRect(posTick, brush)
 
         painter.end()
         
     def sizeHint(self):
-        return QSize(200,5)
+        return QSize(200, 7)
 
-    def setData(self, annotation:VideoAnnotationData, duration):
+    def setData(self, annotation:VideoAnnotationData, duration, position):
         self.annotation = annotation
+        if duration == 0:
+            duration = 1
         self.duration = duration
+        self.position = position
         self.paintEvent = self.paintAction2
         self.update()

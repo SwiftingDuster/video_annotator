@@ -236,7 +236,7 @@ class Ui_MainWindow(QMainWindow):
             self.button_next.setEnabled(True)
             self.button_load.setEnabled(True)
 
-            self.segbar.setData(self.annotation, self.media_player.duration())
+            self.updateSegbar()
 
     def action_interagreement_click(self):
         self.dialog = AgreementDialog()
@@ -412,6 +412,8 @@ class Ui_MainWindow(QMainWindow):
                 if self.button_cap_start.isEnabled():
                     self.button_cap_start.setEnabled(False)
 
+        self.updateSegbar()
+
     # [Event] Called when the total duration of the video changes, such as opening a new video file.
     def media_duration_changed(self, duration):
         self.seek_slider.setRange(0, duration)
@@ -478,7 +480,7 @@ class Ui_MainWindow(QMainWindow):
         self.listwidget_captures.setItemWidget(listwidget_item, seg_widget)
         self.seg_to_listwidget[segment] = listwidget_item
 
-        self.segbar.setData(self.annotation, self.media_player.duration())
+        self.updateSegbar()
 
     def _update_capture_segments(self):
         # Refresh listview
@@ -486,7 +488,7 @@ class Ui_MainWindow(QMainWindow):
         for s in self.annotation.segments:
             self._add_capture_segment(self.annotation, s)
 
-        self.segbar.setData(self.annotation, self.media_player.duration())
+        self.updateSegbar()
 
     def _delete_selected_segments(self):
         items = self.listwidget_captures.selectedItems()
@@ -495,7 +497,7 @@ class Ui_MainWindow(QMainWindow):
 
         self._update_capture_segments()
 
-        self.segbar.setData(self.annotation, self.media_player.duration())
+        self.updateSegbar()
 
     def _delete_segment(self, item):
         # Remove from UI
@@ -504,4 +506,7 @@ class Ui_MainWindow(QMainWindow):
         # Remove in captured frames too
         self.annotation.segments.pop(index)
 
-        self.segbar.setData(self.annotation, self.media_player.duration())
+        self.updateSegbar()
+
+    def updateSegbar(self):
+        self.segbar.setData(self.annotation, self.media_player.duration(), self.media_player.position())
