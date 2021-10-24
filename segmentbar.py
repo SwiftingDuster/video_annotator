@@ -54,6 +54,4 @@ class WSegmentBar(QtWidgets.QWidget):
         self.annotation = annotation
         self.duration = duration
         self.paintEvent = self.paintAction2
-
-    def refresh(self):
         self.update()

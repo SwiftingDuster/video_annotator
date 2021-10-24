@@ -479,7 +479,6 @@ class Ui_MainWindow(QMainWindow):
         self.seg_to_listwidget[segment] = listwidget_item
 
         self.segbar.setData(self.annotation, self.media_player.duration())
-        self.segbar.refresh()
 
     def _update_capture_segments(self):
         # Refresh listview
@@ -488,7 +487,6 @@ class Ui_MainWindow(QMainWindow):
             self._add_capture_segment(self.annotation, s)
 
         self.segbar.setData(self.annotation, self.media_player.duration())
-        self.segbar.refresh()
 
     def _delete_selected_segments(self):
         items = self.listwidget_captures.selectedItems()
@@ -498,7 +496,6 @@ class Ui_MainWindow(QMainWindow):
         self._update_capture_segments()
 
         self.segbar.setData(self.annotation, self.media_player.duration())
-        self.segbar.refresh()
 
     def _delete_segment(self, item):
         # Remove from UI
@@ -506,3 +503,5 @@ class Ui_MainWindow(QMainWindow):
         self.listwidget_captures.takeItem(index)
         # Remove in captured frames too
         self.annotation.segments.pop(index)
+
+        self.segbar.setData(self.annotation, self.media_player.duration())
