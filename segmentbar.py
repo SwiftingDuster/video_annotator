@@ -31,12 +31,15 @@ class WSegmentBar(QtWidgets.QWidget):
         self.drawSegmentBlocks(painter, brush, self.annotation, self.duration)
 
     def drawSegmentBlocks(self, painter, brush, annotation:VideoAnnotationData, duration):
+        padding = 5
         brush.setColor(QtGui.QColor('red'))
-        d_width = painter.device().width()
+        d_width = painter.device().width() - 2 * padding
         d_height = painter.device().height()
         for segment in annotation._segments:
-            leftpos = int(segment.start / duration * d_width)  # pos from left, pix from left/wdiget width = time at start/duration (ms)
+            leftpos = int(segment.start / duration * d_width + padding) # pos from left, pix from left/wdiget width = time at start/duration (ms)
             rectwidth = int((segment.end - segment.start)/duration*d_width) # segment rectangle width
+            if rectwidth < 1:
+                rectwidth = 1
             rect = QtCore.QRect(
                 leftpos,
                 0,
