@@ -1,10 +1,9 @@
-from PyQt5 import QtWidgets
 from PyQt5.QtGui import QBrush, QColor, QPainter
 from PyQt5.QtCore import QRect, QSize, Qt
-from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtWidgets import QSizePolicy, QWidget
 from models import VideoAnnotationData
 
-class WSegmentBar(QtWidgets):
+class WSegmentBar(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,7 +38,7 @@ class WSegmentBar(QtWidgets):
         d_width = painter.device().width() - 2 * padding
         d_height = painter.device().height()
         for segment in annotation._segments:
-            leftpos = int(segment.start / duration * d_width)  # pos from left, pix from left/wdiget width = time at start/duration (ms)
+            leftpos = int(segment.start / duration * d_width + padding)  # pos from left, pix from left/wdiget width = time at start/duration (ms)
             rectwidth = int((segment.end - segment.start)/duration*d_width) # segment rectangle width
             if rectwidth < 1:
                 rectwidth = 1
