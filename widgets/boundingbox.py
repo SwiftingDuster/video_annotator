@@ -1,6 +1,7 @@
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import QPoint, QPointF, QRect, QRectF, QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QMouseEvent, QPainter, QPixmap
-from PyQt5.QtWidgets import (QDialog, QHBoxLayout, QLabel, QMessageBox,
+from PyQt5.QtWidgets import (QDialog, QGridLayout, QHBoxLayout, QLabel, QMessageBox,
                              QPushButton, QSizePolicy, QVBoxLayout)
 
 
@@ -10,8 +11,8 @@ class BBImageLabel(QLabel):
     def __init__(self, image, current_boxes: list[QRect]):
         super().__init__()
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
         self.image = QPixmap.fromImage(image)
         self.setPixmap(self.image)
@@ -91,14 +92,26 @@ class BBImageLabel(QLabel):
             self.box_rect = self._view_to_ratio(self._get_box(self.box_start, box_end))
             self.update()
 
-    # def keyPressEvent(self, e):
-    #     k = e.key()
-    #     if k == Qt.Key.Key_Space:
-    #         self.toggle_draw()
-
     def resizeEvent(self, e):
         width, height = self.width(), self.height()
         self.setPixmap(self.image.scaled(width, height, Qt.AspectRatioMode.KeepAspectRatio))
+
+    def minimumSizeHint(self):
+        return self.sizeHint()
+
+    def sizeHint(self):
+        # Constrain the image size to 80% of monitor width and height.
+        hint = super().sizeHint()
+        w, h = hint.width(), hint.height()
+        ratio = w / h
+        screen_size = QtWidgets.QDesktopWidget().screenGeometry(0)
+        max_w = round(screen_size.width() * 0.8)
+        max_h = round(screen_size.height() * 0.8)
+        if w > max_w:
+            w, h = max_w, round(max_w / ratio)
+        if h > max_h:
+            w, h = round(max_h * ratio), max_h
+        return QSize(w, h)
 
 
 class BoundingBoxDialog(QDialog):
@@ -109,27 +122,17 @@ class BoundingBoxDialog(QDialog):
 
         self.setWindowTitle("Bounding Box")
 
-        #self.label_title = QLabel("Enclose position(s) of smoking incident with bounding box.")
-        #self.label_title.setStyleSheet("font-weight: bold;font-size: 16px;")
         self.label_image = BBImageLabel(image, boxes)
-
-        self.lower_h_layout = QHBoxLayout()
         self.button_finish = QPushButton("Finish")
-        self.lower_h_layout.addWidget(self.button_finish)
         self.button_add_bbox = QPushButton()
-        self.lower_h_layout.addWidget(self.button_add_bbox)
 
-        self.main_v_layout = QVBoxLayout()
-        # self.main_v_layout.addWidget(self.label_title)
-        self.main_v_layout.addWidget(self.label_image)
-        self.main_v_layout.addLayout(self.lower_h_layout)
-        self.main_v_layout.setStretch(1, 2)
-        self.setLayout(self.main_v_layout)
+        self.grid_layout = QGridLayout()
+        self.grid_layout.addWidget(self.label_image, 0, 0, 1, 2)
+        self.grid_layout.addWidget(self.button_finish, 1, 0)
+        self.grid_layout.addWidget(self.button_add_bbox, 1, 1)
+        self.setLayout(self.grid_layout)
 
-        size = QSize(1000, 600)
-        self.setMinimumSize(size)
-        self.resize(size)
-
+        self.setFixedSize(self.sizeHint())  # Disable resizing
         self.button_finish.setDefault(True)
         self._draw_state_changed(False)
 
@@ -166,6 +169,6 @@ if __name__ == "__main__":
     from PyQt5.QtGui import QImage
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
-    ui = BoundingBoxDialog(QImage("a.png"))
+    ui = BoundingBoxDialog(QImage("c.png"), [])
     ui.show()
     sys.exit(app.exec_())
