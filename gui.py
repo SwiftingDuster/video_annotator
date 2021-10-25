@@ -8,15 +8,15 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
                              QMainWindow, QMenu, QMenuBar, QMessageBox,
                              QPushButton, QSlider, QStatusBar, QStyle,
                              QTextEdit, QVBoxLayout, QWidget)
-from framegrabber import FrameGrabber
 
+from framegrabber import FrameGrabber
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms
 from widgets.agreementdialog import AgreementDialog
 from widgets.boundingbox import BoundingBoxDialog
 from widgets.capturesegment import CaptureSegmentWidget
+from widgets.segmentbar import WSegmentBar
 from xmlutils import XMLUtils
-from segmentbar import WSegmentBar
 
 
 class Ui_MainWindow(QMainWindow):
