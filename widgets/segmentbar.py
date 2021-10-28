@@ -12,8 +12,10 @@ class WSegmentBar(QWidget):
             QSizePolicy.MinimumExpanding,
             QSizePolicy.Minimum
         )
+        # Start UI with first paint event
         self.paintEvent = self.paintAction1
 
+    # Paint event to draw empty segment bar
     def paintAction1(self, e):
         painter = QPainter(self)
         brush = QBrush()
@@ -22,6 +24,7 @@ class WSegmentBar(QWidget):
         rect = QRect(0, 0, painter.device().width(), painter.device().height())
         painter.fillRect(rect, brush)
 
+    # Second paint event to be used after video file opened
     def paintAction2(self, e):
         painter = QPainter(self)
         brush = QBrush()
@@ -32,6 +35,7 @@ class WSegmentBar(QWidget):
 
         self.drawSegmentBlocks(painter, brush, self.annotation, self.duration, self.position)
 
+    # Function to draw colored blocks on the segment bar
     def drawSegmentBlocks(self, painter, brush, annotation:VideoAnnotationData, duration, position):
         padding = 5
         brush.setColor(QColor('orange'))
@@ -39,7 +43,7 @@ class WSegmentBar(QWidget):
         d_height = painter.device().height()
         for segment in annotation._segments:
             leftpos = int(segment.start / duration * d_width + padding)  # pos from left, pix from left/wdiget width = time at start/duration (ms)
-            rectwidth = int((segment.end - segment.start) / duration * d_width) # segment rectangle width
+            rectwidth = int((segment.end - segment.start) / duration * d_width)  # segment rectangle width
             if rectwidth < 1:
                 rectwidth = 1
             segbox = QRect(leftpos, 0, rectwidth, d_height)
@@ -50,10 +54,12 @@ class WSegmentBar(QWidget):
         painter.fillRect(posTick, brush)
 
         painter.end()
-        
+
+    # sets minimum size as per size policy specified
     def sizeHint(self):
         return QSize(200, 7)
 
+    # function to trigger switch to 2nd paint event and pass variables for drawing segment blocks
     def setData(self, annotation:VideoAnnotationData, duration, position):
         self.annotation = annotation
         if duration == 0:

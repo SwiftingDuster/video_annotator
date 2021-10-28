@@ -41,8 +41,8 @@ class AgreementDialog(QDialog):
         if numOfFiles > 1:
             from interagreement import InterAgreement
             try:
-                annoData = InterAgreement(self.xmlfilepaths)
-                gammaval = annoData.compute_gamma()
+                annoData = InterAgreement()
+                gammaval = annoData.compute_gamma(self.xmlfilepaths)
                 self.genMessage('Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
             except:
                 self.genMessage('Error', 'Error: Please check input files')

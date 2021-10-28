@@ -5,10 +5,8 @@ import xml.etree.ElementTree as ET
 from pyannote.core import Segment
 from pygamma_agreement import Continuum, PositionalSporadicDissimilarity
 
-# Initialize InterAgreement class with input of a list of xml
-# .computeGamma() to calculate inter-annotator agreement
-# .annotationList to return list of annotations
-
+# .compute_gamma() to calculate inter-annotator agreement
+# .parse_xml_files() to return list of annotations
 
 class InterAgreement:
     """Helper class to calculate Inter Annotator Agreement"""
@@ -16,7 +14,7 @@ class InterAgreement:
     @staticmethod
     def parse_xml_files(xml_files):
         """
-        Parse xml files to suitable format for calculation, return list of elements of ["annotator", frame start, frame end]
+        Parse xml files to suitable format for calculation, return list of elements of ["file name", frame start, frame end]
         """
         annotations = []
         fstartstring = 'start'
@@ -41,12 +39,12 @@ class InterAgreement:
         """
 
         annotations = InterAgreement.parse_xml_files(xml_files)
-        continuum = Continuum()  # add annotation data to continuum
+        continuum = Continuum()
+        # add annotation data to continuum
         for x in annotations:
             continuum.add(x[0], Segment(x[2], x[3]), '')
         dissim = PositionalSporadicDissimilarity(delta_empty=1.0)
         print('Starting Calculation')
         gamma_results = continuum.compute_gamma(
             dissim, precision_level=0.1, fast=True)  # output final gamma val
-        # print(f"The gamma for that annotation is f{gamma_results.gamma}") old code
         return gamma_results.gamma
