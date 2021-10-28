@@ -13,8 +13,7 @@ class PascalXML:
         """
         Load annotations in XML PASCAL VOL format return a VideoAnnotationData object.
 
-        :param path: Destination path to write to.
-        :param annotation: Annotation data.
+        :param file_path: Path to XML file.
         """
 
         data = VideoAnnotationData()

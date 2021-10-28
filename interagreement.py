@@ -13,38 +13,36 @@ from pygamma_agreement import Continuum, PositionalSporadicDissimilarity
 class InterAgreement:
     """Helper class to calculate Inter Annotator Agreement"""
 
-    def __init__(self, xml_files):
-        self.annotationList = self.xml_to_list(xml_files)
-
-    # Parse xml files, return list of elements of ["annotator", frame start, frame end]
-    def xml_to_list(self, xmlFileIn):
-        annotationList = []
-        j = 1
+    @staticmethod
+    def parse_xml_files(xml_files):
+        """
+        Parse xml files to suitable format for calculation, return list of elements of ["annotator", frame start, frame end]
+        """
+        annotations = []
         fstartstring = 'start'
         fendstring = 'end'
-        for i in range(len(xmlFileIn)):
-            tree = ET.parse(xmlFileIn[i])
-            root = tree.getroot()
-            #annotator = root.find("annotator").text
-            filename = os.path.basename(xmlFileIn[i])
-            for segment in root.iter("segment"):
-                '''k = 0
-                for f in segment.iter():
-                    if f != segment:
-                        k += 1
-                for l in range(k):'''
+        for i, file in enumerate(xml_files):
+            tree = ET.parse(file)
+            filename = os.path.basename(file)
+            for segment in tree.iter("segment"):
                 framestart = int(segment.find(fstartstring).text)
                 frameend = int(segment.find(fendstring).text)
-                annotationList.append(
-                    [filename, f"Annotation {j}", framestart, frameend])
-                j += 1
-        return annotationList
+                annotations.append(
+                    [filename, f"Annotation {i + 1}", framestart, frameend])
+        return annotations
 
-    # Function to calculate gamma for inter-annotator agreement. Gamma closer to 1 = higher agreement
-    def compute_gamma(self):
-        annotationList = self.annotationList
+    # Calculate gamma for inter-annotator agreement. Gamma closer to 1 = higher agreement
+    @staticmethod
+    def compute_gamma(xml_files):
+        """
+        Compute inter annotator agreement for two or more XML annotation data.
+
+        :param xml_files: List of xml file paths.
+        """
+
+        annotations = InterAgreement.parse_xml_files(xml_files)
         continuum = Continuum()  # add annotation data to continuum
-        for x in annotationList:
+        for x in annotations:
             continuum.add(x[0], Segment(x[2], x[3]), '')
         dissim = PositionalSporadicDissimilarity(delta_empty=1.0)
         print('Starting Calculation')

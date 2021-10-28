@@ -34,7 +34,7 @@ class BBImageLabel(QLabel):
         else:  # End drawing
             if self.box_rect.width() == 0 and self.box_rect.height() == 0:
                 # No box was drawn, don't do anything
-                pass 
+                pass
             elif self.box_rect.width() < 0.01 or self.box_rect.height() < 0.01:
                 # Box is too small (length/width less than 1% of original image)
                 self.drawing = True  # Don't end drawing
@@ -112,7 +112,7 @@ class BBImageLabel(QLabel):
         if self.drawing:
             box_end = e.pos()
             self.box_rect = self._view_to_ratio(self._get_box(self.box_start, box_end))
-            self.update() # Request repaint, calls paintEvent()
+            self.update()  # Request repaint, calls paintEvent()
 
     def paintEvent(self, e):
         super().paintEvent(e)
@@ -156,7 +156,7 @@ class BBImageLabel(QLabel):
 class BoundingBoxDialog(QDialog):
     """Popup dialog to draw bounding boxes on a frame."""
 
-    finish = pyqtSignal(list) # Emitted when dialog closes by clicking finish
+    finish = pyqtSignal(list)  # Emitted when dialog closes by clicking finish
 
     def __init__(self, image, boxes):
         super().__init__()
@@ -185,8 +185,8 @@ class BoundingBoxDialog(QDialog):
             self.label_image.toggle_draw()
         # Convert into image coordinates
         boxes = [self.label_image.ratio_to_image(b) for b in self.label_image.boxes]
-        self.accept() # Closes dialog
-        self.finish.emit(boxes) # Emit signal with boxes for mainwindow to process
+        self.accept()  # Closes dialog
+        self.finish.emit(boxes)  # Emit signal with boxes for mainwindow to process
 
     # [Event] Called when new bounding box button clicked
     def _button_add_bbox_clicked(self):
