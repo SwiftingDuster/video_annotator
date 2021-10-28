@@ -5,26 +5,18 @@ from PyQt5.QtCore import QPoint, QRect
 from models import VideoAnnotationData, VideoAnnotationSegment
 
 
-class XMLUtils:
-
-    def __init__(self, filename, path):
-        self.filename = filename
-        self.path = path
-
-    # accepts element name and element value to be changed
-    def modifyXML(self, element, data):
-        self.element = element
-        self.data = data
-        tree = ET.parse(self.filename)
-
-        root = tree.getroot()
-        for item in root.iter(self.element):
-            item.text = self.data
-
-        tree.write(self.filename)
+class PascalXML:
+    """Helper functions to serialize/deserialize XML annotations."""
 
     @staticmethod
-    def loadXML(file_path):
+    def load(file_path):
+        """
+        Load annotations in XML PASCAL VOL format return a VideoAnnotationData object.
+
+        :param path: Destination path to write to.
+        :param annotation: Annotation data.
+        """
+
         data = VideoAnnotationData()
         xml = ET.parse(file_path)
 
@@ -52,59 +44,47 @@ class XMLUtils:
         data.resolution = (res_w, res_h)
         return data
 
-    # create an xml object to store xml stuff
-    def saveXML(self, foldername_value, width_value, height_value, fps_value, segmented_value):
-        # create the file structure
-        self.root_value = "Annotation"
-        self.annotator_value = "Video Annotator"
-        self.foldername_value = foldername_value
+    @staticmethod
+    def save(path, annotation: VideoAnnotationData):
+        """
+        Convert annotation data to PASCAL VOL format and write to path.
 
-        self.width_value = width_value
-        self.height_value = height_value
+        :param path: Destination path to write to.
+        :param annotation: Annotation data.
+        """
+        
+        root = ET.Element("Annotation")
 
-        self.video_resolution_value = f"{width_value}x{height_value}"
-        self.fps_value = fps_value
-        self.segmented_value = segmented_value
-
-
-        root = ET.Element(self.root_value)
+        # Name of annotator
         annotator = ET.SubElement(root, "annotator")
-        annotator.text = self.annotator_value
-        folderName = ET.SubElement(root, "folder")
-        folderName.text = self.foldername_value
-
+        annotator.text = "Video annotator"
+        # Folder name and file name
+        folder = ET.SubElement(root, "folder")
+        folder.text = "{}".format(annotation.foldername)
         file_name = ET.SubElement(root, "filename")
-        file_name.text = self.filename
-
-
-
-
+        file_name.text = "{}".format(annotation.filename)
+        # Video resolution
         size = ET.SubElement(root, "size")
         width = ET.SubElement(size, "width")
-        width.text = self.width_value
+        width.text = str(annotation.resolution[0])
         height = ET.SubElement(size, "height")
-        height.text = self.height_value
-
-
+        height.text = str(annotation.resolution[1])
         video_resolution = ET.SubElement(root, "video_resolution")
-        video_resolution.text = self.video_resolution_value
+        video_resolution.text = "{0}x{1}".format(annotation.resolution[0], annotation.resolution[1])
+        # Frame rate
         fps = ET.SubElement(root, "fps")
-        fps.text = self.fps_value
-
-        # get list of segments
-
+        fps.text = "{0}".format(annotation.fps)
+        # Annotation segments
         segments = ET.SubElement(root, f"segments")
-
-        for item in self.segmented_value:
-            start, end = item.start, item.end
-
+        for seg in annotation.segments:
+            start, end = seg.start, seg.end
             segment = ET.SubElement(segments, f"segment")
             framestart = ET.SubElement(segment, "start")
             framestart.text = str(start)
             frameend = ET.SubElement(segment, "end")
             frameend.text = str(end)
             boxes = ET.SubElement(segment, "boxes")
-            for b in item.boxes:
+            for b in seg.boxes:
                 box = ET.SubElement(boxes, "box")
                 topleftX = ET.SubElement(box, "tlX")
                 topleftX.text = str(b.topLeft().x())
@@ -115,25 +95,6 @@ class XMLUtils:
                 bottomrightY = ET.SubElement(box, "brY")
                 bottomrightY.text = str(b.bottomRight().y())
 
-
-
-
-
-        # prettify the xml data
-
         tree = ET.ElementTree(root)
         ET.indent(tree, space="\t", level=0)
-        # ET.dump(root)
-
-        tree.write(self.path, encoding="utf-8")
-
-
-if __name__ == "__main__":
-    # example: modifying foldername to file1
-    xmlinput = XMLUtils("testxml.xml")
-
-
-
-    #For testing
-    xmlinput.saveXML("Foldername", "width",
-                     "height", "fps", "seg_value")
+        tree.write(path, encoding="utf-8")

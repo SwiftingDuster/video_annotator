@@ -11,12 +11,12 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
 
 from framegrabber import FrameGrabber
 from models import VideoAnnotationData, VideoAnnotationSegment
+from pascalxml import PascalXML
 from utility import timestamp_from_ms
 from widgets.agreementdialog import AgreementDialog
 from widgets.boundingboxdialog import BoundingBoxDialog
 from widgets.capturesegment import CaptureSegmentWidget
 from widgets.segmentbar import WSegmentBar
-from xmlutils import XMLUtils
 
 
 class Ui_MainWindow(QMainWindow):
@@ -206,7 +206,7 @@ class Ui_MainWindow(QMainWindow):
         self.listwidget_captures.model().rowsInserted.connect(self._listwidget_captures_row_inserted)
         self.listwidget_captures.model().rowsRemoved.connect(self._listwidget_captures_row_removed)
 
-    # [Event] Called when open file action is triggered.
+    # [Event] Prompts open file dialog.
     def _action_open_file_clicked(self):
         file_path, _ = QFileDialog.getOpenFileName(None, 'Open Video', QDir.homePath(), 'Video Files (*.mp4)')
         if file_path:
@@ -229,11 +229,13 @@ class Ui_MainWindow(QMainWindow):
 
             self._update_segbar()
 
+    # [Event] Shows inter agreement calculator dialog.
     def _action_interagreement_click(self):
         self.dialog = AgreementDialog()
         self.dialog.setWindowFlag(Qt.WindowType.Window)
         self.dialog.show()
 
+    # [Event] Shows about message.
     def _action_about_clicked(self):
         about = QMessageBox()
         about.setWindowTitle("About")
@@ -256,6 +258,7 @@ class Ui_MainWindow(QMainWindow):
                 # Enable capture start button
                 self.button_cap_start.setEnabled(True)
 
+    # [Event] Called when prev button is clicked.
     def _button_prev_clicked(self):
         new_pos = self.media_player.position() - 150
         if self.capturing and self.annotation.find_segment(new_pos) is not None:
@@ -264,6 +267,7 @@ class Ui_MainWindow(QMainWindow):
 
         self.media_player.setPosition(new_pos)
 
+    # [Event] Called when next button is clicked.
     def _button_next_clicked(self):
         new_pos = self.media_player.position() + 150
         if self.capturing and self.annotation.find_segment(new_pos) is not None:
@@ -300,7 +304,7 @@ class Ui_MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(
             None, 'Load Annotations', QDir.homePath(), 'XML Files (*.xml)')
         if file_path:
-            annotation = XMLUtils.loadXML(file_path)
+            annotation = PascalXML.load(file_path)
             if annotation.fps != self.annotation.fps or annotation.resolution != self.annotation.resolution:
                 # Annotation data wrong
                 prompt = QMessageBox()
@@ -322,11 +326,9 @@ class Ui_MainWindow(QMainWindow):
         # Write output to file
         file_path, _ = QFileDialog.getSaveFileName(None, 'Export PASCAL VOL', QDir.currentPath(), 'XML files (*.xml)')
         if file_path:
-            a = self.annotation
             if not file_path.endswith(".xml"):
                 file_path += ".xml"
-            xmlinput = XMLUtils(a.filename, file_path)
-            xmlinput.saveXML(a.foldername, str(a.resolution[0]), str(a.resolution[1]), str(a.fps), a.segments)
+            PascalXML.save(file_path, self.annotation)
 
     # [Event] Called when bounding box button is clicked.
     def _button_bbox_clicked(self, segment: VideoAnnotationSegment):
@@ -458,7 +460,6 @@ class Ui_MainWindow(QMainWindow):
 
     # Update timestamp text.
     def _update_label_timestamp(self, position):
-        # Update timestamp
         self.label_video_position.setText('{0} / {1}'.format(timestamp_from_ms(position), timestamp_from_ms(self.media_player.duration())))
 
     # Add new segment to annotaion. Called when finished capturing.
@@ -479,7 +480,7 @@ class Ui_MainWindow(QMainWindow):
 
         self._update_segbar()
 
-    # Force a refresh on listwidget
+    # Force a refresh on segments listwidget
     def _update_capture_segments(self):
         self.listwidget_captures.clear()
         for s in self.annotation.segments:

@@ -175,10 +175,11 @@ class BoundingBoxDialog(QDialog):
 
         self.setFixedSize(self.sizeHint())  # Disable resizing
 
-        self.button_finish.clicked.connect(self._button_finish)
-        self.button_add_bbox.clicked.connect(self._button_add_bbox)
+        self.button_finish.clicked.connect(self._button_finish_clicked)
+        self.button_add_bbox.clicked.connect(self._button_add_bbox_clicked)
 
-    def _button_finish(self):
+    # [Event] Called when finish button clicked
+    def _button_finish_clicked(self):
         # If currently drawing, save the box
         if self.label_image.drawing:
             self.label_image.toggle_draw()
@@ -187,7 +188,8 @@ class BoundingBoxDialog(QDialog):
         self.accept() # Closes dialog
         self.finish.emit(boxes) # Emit signal with boxes for mainwindow to process
 
-    def _button_add_bbox(self):
+    # [Event] Called when new bounding box button clicked
+    def _button_add_bbox_clicked(self):
         state = self.label_image.toggle_draw()
         if state:
             self.button_add_bbox.setText("End bounding box")

@@ -1,4 +1,5 @@
 # interagreement.py defines functions to
+import os
 import xml.etree.ElementTree as ET
 
 from pyannote.core import Segment
@@ -10,10 +11,12 @@ from pygamma_agreement import Continuum, PositionalSporadicDissimilarity
 
 
 class InterAgreement:
+    """Helper class to calculate Inter Annotator Agreement"""
+
     def __init__(self, xml_files):
         self.annotationList = self.xml_to_list(xml_files)
 
-    # Make function to parse xml files, return list of elements of ["annotator", frame start, frame end]
+    # Parse xml files, return list of elements of ["annotator", frame start, frame end]
     def xml_to_list(self, xmlFileIn):
         annotationList = []
         j = 1
@@ -23,7 +26,7 @@ class InterAgreement:
             tree = ET.parse(xmlFileIn[i])
             root = tree.getroot()
             #annotator = root.find("annotator").text
-            filename = self.getFileName(xmlFileIn[i])
+            filename = os.path.basename(xmlFileIn[i])
             for segment in root.iter("segment"):
                 '''k = 0
                 for f in segment.iter():
@@ -38,7 +41,7 @@ class InterAgreement:
         return annotationList
 
     # Function to calculate gamma for inter-annotator agreement. Gamma closer to 1 = higher agreement
-    def computeGamma(self):
+    def compute_gamma(self):
         annotationList = self.annotationList
         continuum = Continuum()  # add annotation data to continuum
         for x in annotationList:
@@ -49,34 +52,3 @@ class InterAgreement:
             dissim, precision_level=0.1, fast=True)  # output final gamma val
         # print(f"The gamma for that annotation is f{gamma_results.gamma}") old code
         return gamma_results.gamma
-
-    def dumbsearch(self, inlist):
-        j = 0
-        framepair = ['', '']
-        strlen = len(inlist)
-        for i in range(strlen-1):
-            if inlist[i].isdigit and inlist[i+1].isdigit:
-                if framepair[j] == '':
-                    framepair[j] += inlist[i]+inlist[i+1]
-                framepair[j] += inlist[i+1]
-            elif inlist[i].isdigit and not inlist[i+1].isdigit:
-                if j == 0:
-                    j = 1
-        return framepair
-
-    def getFileName(self, path):
-        i = -1
-        while True:
-            if path[i] != '/':
-                i -= 1
-            else:
-                return path[i+1:]
-
-
-if __name__ == "__main__":
-    # Store xml file names/dir as strings in list
-    xmlList = ["test1.xml", "test2.xml"]
-    # Example print for illustration
-    xmlData = InterAgreement(xmlList)
-    print(xmlData.annotationList)
-    print(xmlData.computeGamma())

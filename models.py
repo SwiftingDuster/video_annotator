@@ -12,9 +12,6 @@ class VideoAnnotationData:
     """Object model storing annotation data of a video file."""
 
     def __init__(self):
-        """
-        Constructor.
-        """
         self.foldername = self.filename = self.fps = ""
         self.resolution = 0, 0
         self._segments: list[VideoAnnotationSegment] = []

@@ -1,9 +1,16 @@
 # Dialog box for calculating agreement
+
+import os
+
 from PyQt5.QtCore import QCoreApplication, QMetaObject
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QFileDialog, QMessageBox, QLabel, QDialog
+from PyQt5.QtWidgets import (QDialog, QFileDialog, QHBoxLayout, QLabel,
+                             QListWidget, QMessageBox, QPushButton,
+                             QVBoxLayout)
 
 
 class AgreementDialog(QDialog):
+    """Popup dialog to calculate inter annotator agreement."""
+
     def __init__(self):
         super().__init__()
 
@@ -21,7 +28,7 @@ class AgreementDialog(QDialog):
         filepaths = choosedialog.selectedFiles()
         for file in filepaths:
             self.xmlfilepaths.append(file)
-            self.listwidget_files.addItem(self.getFileName(file))
+            self.listwidget_files.addItem(os.path.basename(file))
 
     # Remove item from list widget
     def listRemoveItem(self):
@@ -32,15 +39,10 @@ class AgreementDialog(QDialog):
     def run_calc(self):
         numOfFiles = self.listwidget_files.count()
         if numOfFiles > 1:
-            import interagreement
-            '''filepaths=[]
-            for i in range(self.listwidget_files.count()):
-                pathitem = self.listwidget_files.item(i)
-                pathstr = pathitem.text()
-                filepaths.append(pathstr)'''
+            from interagreement import InterAgreement
             try:
-                annoData = interagreement.InterAgreement(self.xmlfilepaths)
-                gammaval = annoData.computeGamma()
+                annoData = InterAgreement(self.xmlfilepaths)
+                gammaval = annoData.compute_gamma()
                 self.genMessage('Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
             except:
                 self.genMessage('Error', 'Error: Please check input files')
@@ -53,14 +55,6 @@ class AgreementDialog(QDialog):
         messagebox.setWindowTitle(title)
         messagebox.setText(content)
         messagebox.exec()
-
-    def getFileName(self, path):
-        i = -1
-        while True:
-            if path[i] != '/':
-                i -= 1
-            else:
-                return path[i+1:]
 
     def setupUi(self):
         self.setObjectName("Dialog")
