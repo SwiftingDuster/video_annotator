@@ -6,11 +6,12 @@ from models import VideoAnnotationData, VideoAnnotationSegment
 
 from utility import timestamp_from_ms
 
-
 class CaptureSegmentWidget(QWidget):
-    play = pyqtSignal(VideoAnnotationSegment)
-    bound_box = pyqtSignal(VideoAnnotationSegment)
-    delete = pyqtSignal(QListWidgetItem)
+    """Custom Widget shown in place of the default list item in Captured Frames"""
+
+    play = pyqtSignal(VideoAnnotationSegment) # Emit when play button clicked
+    bound_box = pyqtSignal(VideoAnnotationSegment) # Emit when bounding box button clicked
+    delete = pyqtSignal(QListWidgetItem) # Emit when delete button clicked
 
     def __init__(self, number, annotation: VideoAnnotationData, segment: VideoAnnotationSegment, widget_item: QListWidgetItem):
         super().__init__()
@@ -40,7 +41,6 @@ class CaptureSegmentWidget(QWidget):
 
         # Button icons and size
         self.button_play.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
-        # self.button_boundbox.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop))
         self.button_boundbox.setText("BB")
         self.button_delete.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon))
         policy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
@@ -55,11 +55,13 @@ class CaptureSegmentWidget(QWidget):
         self.button_boundbox.clicked.connect(self.button_boundbox_clicked)
         self.button_delete.clicked.connect(self.button_delete_clicked)
 
+        # Save references for emitting in signals
         self.number = number
         self.annotation = annotation
         self.segment = segment
         self.item = widget_item
 
+        # Initialize itself with data from constructor
         frame_start = annotation.frame_from_ms(segment.start)
         frame_end = annotation.frame_from_ms(segment.end)
         time_start = timestamp_from_ms(segment.start, True)

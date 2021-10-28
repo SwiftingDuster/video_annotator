@@ -1,24 +1,30 @@
-from typing import Tuple
-
-import cv2
-
-
-def get_video_metadata(path) -> Tuple[int, Tuple[int, int], int]:
+def get_video_metadata(path):
+    """
+    Use OpenCV to retrieve fps and resolution of a video file.
+    
+    :param path: Path to video file.
+    """
+    import cv2
     cap = cv2.VideoCapture(path)
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     resolution = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
                   int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     cap.release()
-    return (fps, resolution, total_frames)
+    return (fps, resolution)
 
 
-def timestamp_from_ms(ms, show_milisecs=False):
+def timestamp_from_ms(ms, show_ms=False):
+    """
+    Convert from milisecond to readable timestamp format. 
+    
+    :param ms: Time in miliseconds.
+    :param show_ms: False: hh:mm:ss | True: mm:ss:ms
+    """
     seconds = (ms/1000) % 60
     seconds = int(seconds)
     minutes = (ms/(1000*60)) % 60
     minutes = int(minutes)
-    if not show_milisecs:
+    if not show_ms:
         hours = (ms/(1000*60*60)) % 24
         if hours < 1:
             return "%02d:%02d" % (minutes, seconds)

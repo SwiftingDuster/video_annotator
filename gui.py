@@ -13,7 +13,7 @@ from framegrabber import FrameGrabber
 from models import VideoAnnotationData, VideoAnnotationSegment
 from utility import timestamp_from_ms
 from widgets.agreementdialog import AgreementDialog
-from widgets.boundingbox import BoundingBoxDialog
+from widgets.boundingboxdialog import BoundingBoxDialog
 from widgets.capturesegment import CaptureSegmentWidget
 from widgets.segmentbar import WSegmentBar
 from xmlutils import XMLUtils
@@ -115,42 +115,33 @@ class Ui_MainWindow(QMainWindow):
         vol_box.addWidget(self.volume_slider, alignment=Qt.AlignCenter)
         vol_box.addWidget(QLabel(alignment=Qt.AlignCenter, text='+'))
         self.lower_h_layout.addLayout(vol_box)
-
         # Capture start button
         self.button_cap_start = QPushButton()
         self.lower_h_layout.addWidget(self.button_cap_start)
         # Capture end button
         self.button_cap_end = QPushButton()
         self.lower_h_layout.addWidget(self.button_cap_end)
+
         # Layouts
         self.main_vertical_layout.addLayout(self.lower_h_layout)
         self.setCentralWidget(self.central_widget)
 
         # Menu Bar
-        self.menubar = QMenuBar(self)
-        self.menubar.setGeometry(QRect(0, 0, 1280, 26))
+        self.menubar = QMenuBar()
         self.menu_file = QMenu(self.menubar)
         self.setMenuBar(self.menubar)
-
-        self.statusbar = QStatusBar(self)
-        self.setStatusBar(self.statusbar)
-
         self.action_open_file = QAction(self)
-        self.menu_file.addAction(self.action_open_file)
-        self.menubar.addAction(self.menu_file.menuAction())
-
         self.action_calc_agreement = QAction(self)
-        self.menu_file.addAction(self.action_calc_agreement)
-        self.menubar.addAction(self.menu_file.menuAction())
-
         self.about = QAction(self)
+        self.menu_file.addAction(self.action_open_file)
+        self.menu_file.addAction(self.action_calc_agreement)
         self.menu_file.addAction(self.about)
         self.menubar.addAction(self.menu_file.menuAction())
 
         self.retranslateUi()
         QMetaObject.connectSlotsByName(self)
 
-        # Setup UI state
+        # Setup startup UI state
         self.label_video_position.setText("--:--")
         self.button_prev.setEnabled(False)
         self.button_next.setEnabled(False)
@@ -190,33 +181,33 @@ class Ui_MainWindow(QMainWindow):
         self.action_calc_agreement.setShortcut(_translate("MainWindow", "F2"))
 
     def setupEvents(self):
-        self.action_open_file.triggered.connect(self.action_open_file_clicked)
-        self.action_calc_agreement.triggered.connect(self.action_interagreement_click)
-        self.about.triggered.connect(self.action_about_clicked)
+        self.action_open_file.triggered.connect(self._action_open_file_clicked)
+        self.action_calc_agreement.triggered.connect(self._action_interagreement_click)
+        self.about.triggered.connect(self._action_about_clicked)
 
-        self.button_play.clicked.connect(self.button_play_clicked)
-        self.button_prev.clicked.connect(self.button_prev_clicked)
-        self.button_next.clicked.connect(self.button_next_clicked)
-        self.button_cap_start.clicked.connect(self.button_start_capture_clicked)
-        self.button_cap_end.clicked.connect(self.button_end_capture_clicked)
-        self.button_load.clicked.connect(self.button_load_clicked)
-        self.button_export.clicked.connect(self.button_export_clicked)
+        self.button_play.clicked.connect(self._button_play_clicked)
+        self.button_prev.clicked.connect(self._button_prev_clicked)
+        self.button_next.clicked.connect(self._button_next_clicked)
+        self.button_cap_start.clicked.connect(self._button_start_capture_clicked)
+        self.button_cap_end.clicked.connect(self._button_end_capture_clicked)
+        self.button_load.clicked.connect(self._button_load_clicked)
+        self.button_export.clicked.connect(self._button_export_clicked)
 
-        self.seek_slider.sliderMoved.connect(self.seek_slider_position_changed)
-        self.seek_slider.valueChanged.connect(self.seek_slider_value_changed)
-        self.volume_slider.sliderMoved.connect(self.volume_slider_position_changed)
+        self.seek_slider.sliderMoved.connect(self._seek_slider_position_changed)
+        self.seek_slider.valueChanged.connect(self._seek_slider_value_changed)
+        self.volume_slider.sliderMoved.connect(self._volume_slider_position_changed)
 
-        self.media_player.stateChanged.connect(self.media_state_changed)
-        self.media_player.positionChanged.connect(self.media_position_changed)
-        self.media_player.durationChanged.connect(self.media_duration_changed)
+        self.media_player.stateChanged.connect(self._media_state_changed)
+        self.media_player.positionChanged.connect(self._media_position_changed)
+        self.media_player.durationChanged.connect(self._media_duration_changed)
 
         self.listwidget_captures.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.listwidget_captures.customContextMenuRequested.connect(self.listwidget_captures_contextmenu_open)
-        self.listwidget_captures.model().rowsInserted.connect(self.listwidget_captures_row_inserted)
-        self.listwidget_captures.model().rowsRemoved.connect(self.listwidget_captures_row_removed)
+        self.listwidget_captures.customContextMenuRequested.connect(self._listwidget_captures_contextmenu_open)
+        self.listwidget_captures.model().rowsInserted.connect(self._listwidget_captures_row_inserted)
+        self.listwidget_captures.model().rowsRemoved.connect(self._listwidget_captures_row_removed)
 
     # [Event] Called when open file action is triggered.
-    def action_open_file_clicked(self):
+    def _action_open_file_clicked(self):
         file_path, _ = QFileDialog.getOpenFileName(None, 'Open Video', QDir.homePath(), 'Video Files (*.mp4)')
         if file_path:
             # Init new video annotation data
@@ -236,14 +227,14 @@ class Ui_MainWindow(QMainWindow):
             self.button_next.setEnabled(True)
             self.button_load.setEnabled(True)
 
-            self.updateSegbar()
+            self._update_segbar()
 
-    def action_interagreement_click(self):
+    def _action_interagreement_click(self):
         self.dialog = AgreementDialog()
         self.dialog.setWindowFlag(Qt.WindowType.Window)
         self.dialog.show()
 
-    def action_about_clicked(self):
+    def _action_about_clicked(self):
         about = QMessageBox()
         about.setWindowTitle("About")
         about.setInformativeText("")
@@ -253,9 +244,9 @@ class Ui_MainWindow(QMainWindow):
         about.exec()
 
     # [Event] Called when play/pause button is clicked.
-    def button_play_clicked(self):
+    def _button_play_clicked(self):
         if self.media_player.mediaStatus() == QMediaPlayer.MediaStatus.NoMedia:
-            self.action_open_file_clicked()
+            self._action_open_file_clicked()
 
         if self.media_player.state() == QMediaPlayer.State.PlayingState:
             self.media_player.pause()
@@ -265,7 +256,7 @@ class Ui_MainWindow(QMainWindow):
                 # Enable capture start button
                 self.button_cap_start.setEnabled(True)
 
-    def button_prev_clicked(self):
+    def _button_prev_clicked(self):
         new_pos = self.media_player.position() - 150
         if self.capturing and self.annotation.find_segment(new_pos) is not None:
             print("Entering segment")
@@ -273,7 +264,7 @@ class Ui_MainWindow(QMainWindow):
 
         self.media_player.setPosition(new_pos)
 
-    def button_next_clicked(self):
+    def _button_next_clicked(self):
         new_pos = self.media_player.position() + 150
         if self.capturing and self.annotation.find_segment(new_pos) is not None:
             print("Entering segment")
@@ -282,7 +273,7 @@ class Ui_MainWindow(QMainWindow):
         self.media_player.setPosition(new_pos)
 
     # [Event] Called when start capture button is clicked.
-    def button_start_capture_clicked(self):
+    def _button_start_capture_clicked(self):
         self.capturing = True
         start_ms = self.media_player.position()
         self.capture = VideoAnnotationSegment(start_ms)
@@ -294,7 +285,7 @@ class Ui_MainWindow(QMainWindow):
         self.capture_max = self.media_player.duration() if seg == None else (seg.start - frame_time)
 
     # [Event] Called when end capture button is clicked.
-    def button_end_capture_clicked(self):
+    def _button_end_capture_clicked(self):
         self.capture.end = self.media_player.position()
         self.annotation.add_segment(self.capture)
 
@@ -305,7 +296,7 @@ class Ui_MainWindow(QMainWindow):
         self.button_cap_end.setEnabled(False)
 
     # [Event] Called when export button is clicked.
-    def button_load_clicked(self):
+    def _button_load_clicked(self):
         file_path, _ = QFileDialog.getOpenFileName(
             None, 'Load Annotations', QDir.homePath(), 'XML Files (*.xml)')
         if file_path:
@@ -327,7 +318,7 @@ class Ui_MainWindow(QMainWindow):
             self._update_capture_segments()
 
     # [Event] Called when export button is clicked.
-    def button_export_clicked(self):
+    def _button_export_clicked(self):
         # Write output to file
         file_path, _ = QFileDialog.getSaveFileName(None, 'Export PASCAL VOL', QDir.currentPath(), 'XML files (*.xml)')
         if file_path:
@@ -337,14 +328,38 @@ class Ui_MainWindow(QMainWindow):
             xmlinput = XMLUtils(a.filename, file_path)
             xmlinput.saveXML(a.foldername, str(a.resolution[0]), str(a.resolution[1]), str(a.fps), a.segments)
 
+    # [Event] Called when bounding box button is clicked.
+    def _button_bbox_clicked(self, segment: VideoAnnotationSegment):
+        # Seek to segment start and get video frame
+        self.media_player.setPosition(segment.start)
+        self.frame_grabber.frameAvailable.connect(self._bbox_frame_available)
+
+    # Frame grabber callback
+    def _bbox_frame_available(self, frame: QVideoFrame):
+        # Retrieved frame is used for bounding box drawing
+        self.frame_grabber.frameAvailable.disconnect(self._bbox_frame_available)
+        self.media_player.pause()
+        pos = frame.startTime() // 1000  # startTime() returns microseconds
+        seg = self.annotation.find_segment(pos)
+        self.bb_window = BoundingBoxDialog(frame.image(), seg.boxes)
+        self.bb_window.finish.connect(lambda boxes: self._save_bbox(frame, boxes))
+        self.bb_window.exec()
+
+    # Bounding box dialog finished callback
+    def _save_bbox(self, frame: QVideoFrame, boxes: list[QRect]):
+        pos = frame.startTime() // 1000  # startTime() returns microseconds
+        seg = self.annotation.find_segment(pos)
+        if seg is not None:
+            seg.boxes = boxes
+
     # [Event] Called when manually moving seek slider in UI.
-    def seek_slider_position_changed(self, position):
+    def _seek_slider_position_changed(self, position):
         self.media_player.setPosition(position)
         # Update timestamp
         self._update_label_timestamp(position)
 
     # [Event] Called when seek slider value changed due to dragging or setValue().
-    def seek_slider_value_changed(self, position):
+    def _seek_slider_value_changed(self, position):
         if self.capturing:
             # Restrict slider to valid values and not conflicting with existing segment.
             if position < self.capture.start:
@@ -353,11 +368,11 @@ class Ui_MainWindow(QMainWindow):
                 self.seek_slider.setValue(self.capture_max)
 
     # [Event] Called when manually moving volume slider in UI.
-    def volume_slider_position_changed(self, position):
+    def _volume_slider_position_changed(self, position):
         self.media_player.setVolume(position)
 
     # [Event] Called when mediaplayer changed to playing or paused and vice versa.
-    def media_state_changed(self, state):
+    def _media_state_changed(self, state):
         if state == QMediaPlayer.State.PlayingState:
             self.button_play.setIcon(
                 self.style().standardIcon(QStyle.SP_MediaPause))
@@ -371,7 +386,7 @@ class Ui_MainWindow(QMainWindow):
             self.button_play.setText("Play")
 
     # [Event] Called every "notify interval" miliseconds when mediaplayer is playing.
-    def media_position_changed(self, position):
+    def _media_position_changed(self, position):
         # Update seek slider progress
         self.seek_slider.setValue(position)
         # Update timestamp
@@ -412,66 +427,48 @@ class Ui_MainWindow(QMainWindow):
                 if self.button_cap_start.isEnabled():
                     self.button_cap_start.setEnabled(False)
 
-        self.updateSegbar()
+        self._update_segbar()
 
     # [Event] Called when the total duration of the video changes, such as opening a new video file.
-    def media_duration_changed(self, duration):
+    def _media_duration_changed(self, duration):
         self.seek_slider.setRange(0, duration)
 
-    def listwidget_captures_row_inserted(self, parent, first, last):
+    # [Event] Called when adding new segment to annotation.
+    def _listwidget_captures_row_inserted(self, parent, first, last):
         if self.listwidget_captures.count() > 0:
             self.button_export.setEnabled(True)
 
-    def listwidget_captures_row_removed(self, parent, first, last):
+    # [Event] Called when adding deleting segment from annotation.
+    def _listwidget_captures_row_removed(self, parent, first, last):
         if self.listwidget_captures.count() == 0:
             self.button_export.setEnabled(False)
 
-    def listwidget_captures_contextmenu_open(self, pos):
+    # [Event] Called when right clicking segment in annotation list.
+    def _listwidget_captures_contextmenu_open(self, pos):
         if self.listwidget_captures.itemAt(pos) == None:
             # Right click outside a segment widget
             return
-
-        global_pos = self.listwidget_captures.mapToGlobal(pos)
 
         context_actions = QMenu()
         selected_count = len(self.listwidget_captures.selectedItems())
         context_actions.addAction(f"Delete Selection ({selected_count})", self._delete_selected_segments)
 
+        global_pos = self.listwidget_captures.mapToGlobal(pos)
         context_actions.exec(global_pos)
 
+    # Update timestamp text.
     def _update_label_timestamp(self, position):
         # Update timestamp
         self.label_video_position.setText('{0} / {1}'.format(timestamp_from_ms(position), timestamp_from_ms(self.media_player.duration())))
 
-    def _get_frame(self, segment: VideoAnnotationSegment):
-        # Seek to segment start and get video frame
-        self.media_player.setPosition(segment.start)
-        self.frame_grabber.frameAvailable.connect(self._process_frame)
-
-    def _process_frame(self, frame: QVideoFrame):
-        # Retrieved frame is used for bounding box drawing
-        self.frame_grabber.frameAvailable.disconnect(self._process_frame)
-        self.media_player.pause()
-        pos = frame.startTime() // 1000  # startTime() returns microseconds
-        seg = self.annotation.find_segment(pos)
-        self.bb_window = BoundingBoxDialog(frame.image(), seg.boxes)
-        self.bb_window.finish.connect(lambda boxes: self._save_bbox(frame, boxes))
-        self.bb_window.exec()
-
-    def _save_bbox(self, frame: QVideoFrame, boxes: list[QRect]):
-        pos = frame.startTime() // 1000  # startTime() returns microseconds
-        seg = self.annotation.find_segment(pos)
-        if seg is not None:
-            seg.boxes = boxes
-        print(seg)
-
+    # Add new segment to annotaion. Called when finished capturing.
     def _add_capture_segment(self, annotation, segment):
         count = self.listwidget_captures.count() + 1
         listwidget_item = QListWidgetItem(self.listwidget_captures)
 
         seg_widget = CaptureSegmentWidget(count, annotation, segment, listwidget_item)
-        seg_widget.play.connect(lambda segment: self.seek_slider_position_changed(segment.start))
-        seg_widget.bound_box.connect(self._get_frame)
+        seg_widget.play.connect(lambda segment: self._seek_slider_position_changed(segment.start))
+        seg_widget.bound_box.connect(self._button_bbox_clicked)
         seg_widget.delete.connect(lambda item: self._delete_segment(item))
 
         listwidget_item.setSizeHint(seg_widget.sizeHint())
@@ -480,16 +477,17 @@ class Ui_MainWindow(QMainWindow):
         self.listwidget_captures.setItemWidget(listwidget_item, seg_widget)
         self.seg_to_listwidget[segment] = listwidget_item
 
-        self.updateSegbar()
+        self._update_segbar()
 
+    # Force a refresh on listwidget
     def _update_capture_segments(self):
-        # Refresh listview
         self.listwidget_captures.clear()
         for s in self.annotation.segments:
             self._add_capture_segment(self.annotation, s)
 
-        self.updateSegbar()
+        self._update_segbar()
 
+    # Delete all annotation segments currently selected.
     def _delete_selected_segments(self):
         items = self.listwidget_captures.selectedItems()
         for item in items:
@@ -497,8 +495,9 @@ class Ui_MainWindow(QMainWindow):
 
         self._update_capture_segments()
 
-        self.updateSegbar()
+        self._update_segbar()
 
+    # Delete a single annotation segment
     def _delete_segment(self, item):
         # Remove from UI
         index = self.listwidget_captures.row(item)
@@ -506,7 +505,8 @@ class Ui_MainWindow(QMainWindow):
         # Remove in captured frames too
         self.annotation.segments.pop(index)
 
-        self.updateSegbar()
+        self._update_segbar()
 
-    def updateSegbar(self):
+    # Update annotation segments in segment bar
+    def _update_segbar(self):
         self.segbar.setData(self.annotation, self.media_player.duration(), self.media_player.position())
