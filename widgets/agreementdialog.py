@@ -2,6 +2,7 @@
 
 import os
 
+from interagreement import InterAgreement
 from PyQt5.QtCore import QCoreApplication, QMetaObject
 from PyQt5.QtWidgets import (QDialog, QFileDialog, QHBoxLayout, QLabel,
                              QListWidget, QMessageBox, QPushButton,
@@ -17,8 +18,10 @@ class AgreementDialog(QDialog):
         self.setupUi()
         self.setupEvents()
 
+        self.xmlfilepaths = []
+
     # Add annotation file to list widget
-    def add_annoxml(self):
+    def button_add_file_clicked(self):
         filters = ['XML files(*.xml)', 'All files(*)']
         choosedialog = QFileDialog(None)
         choosedialog.setFileMode(QFileDialog.ExistingFiles)
@@ -30,34 +33,31 @@ class AgreementDialog(QDialog):
             self.xmlfilepaths.append(file)
             self.listwidget_files.addItem(os.path.basename(file))
 
+    # Start agreement calculation on files
+    def button_calculate_clicked(self):
+        numOfFiles = self.listwidget_files.count()
+        if numOfFiles > 1:
+            try:
+                gammaval = InterAgreement.compute_gamma(self.xmlfilepaths)
+                self.show_message('Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
+            except:
+                self.show_message('Error', 'Error: Please check input files')
+        else:
+            self.show_message('Error', 'Error: Please add at least 2 input files')
+
     # Remove item from list widget
-    def listRemoveItem(self):
+    def list_doubleclicked(self):
         self.xmlfilepaths.pop(self.listwidget_files.currentRow())
         self.listwidget_files.takeItem(self.listwidget_files.currentRow())
 
-    # Function to start calculation
-    def run_calc(self):
-        numOfFiles = self.listwidget_files.count()
-        if numOfFiles > 1:
-            from interagreement import InterAgreement
-            try:
-                annoData = InterAgreement()
-                gammaval = annoData.compute_gamma(self.xmlfilepaths)
-                self.genMessage('Result', f'Inter-Annotator Agreement Value: \n {gammaval:.4f}')
-            except:
-                self.genMessage('Error', 'Error: Please check input files')
-        else:
-            self.genMessage('Error', 'Error: Please add at least 2 input files')
-
     # Message generator
-    def genMessage(self, title='Message', content=''):
+    def show_message(self, title='Message', content=''):
         messagebox = QMessageBox()
         messagebox.setWindowTitle(title)
         messagebox.setText(content)
         messagebox.exec()
 
     def setupUi(self):
-        self.setObjectName("Dialog")
         self.resize(270, 170)
 
         self.v_layout = QVBoxLayout(self)
@@ -67,10 +67,10 @@ class AgreementDialog(QDialog):
         self.v_layout.addWidget(self.infotext)
 
         self.h_layout = QHBoxLayout()
-        self.buttonAddFile = QPushButton()
-        self.h_layout.addWidget(self.buttonAddFile)
-        self.buttonCalculate = QPushButton()
-        self.h_layout.addWidget(self.buttonCalculate)
+        self.button_add_file = QPushButton()
+        self.h_layout.addWidget(self.button_add_file)
+        self.button_calculate = QPushButton()
+        self.h_layout.addWidget(self.button_calculate)
         self.button_close = QPushButton()
         self.h_layout.addWidget(self.button_close)
 
@@ -78,18 +78,17 @@ class AgreementDialog(QDialog):
 
         self.retranslateUi()
         QMetaObject.connectSlotsByName(self)
-        self.xmlfilepaths = []
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
         self.setWindowTitle(_translate("Dialog", "Inter-Annotator Agreement"))
-        self.buttonAddFile.setText(_translate("Dialog", "Add File"))
-        self.buttonCalculate.setText(_translate("Dialog", "Calculate"))
-        self.infotext.setText(_translate("Dialog", "Double-click to remove from list"))
+        self.button_add_file.setText(_translate("Dialog", "Add File"))
+        self.button_calculate.setText(_translate("Dialog", "Calculate"))
+        self.infotext.setText(_translate("Dialog", "Double-click file name to remove.\nCalculation may take some time."))
         self.button_close.setText(_translate("Dialog", "Close"))
 
     def setupEvents(self):
-        self.buttonAddFile.clicked.connect(self.add_annoxml)
-        self.buttonCalculate.clicked.connect(self.run_calc)
-        self.button_close.clicked.connect(self.reject)
-        self.listwidget_files.itemDoubleClicked.connect(self.listRemoveItem)
+        self.button_add_file.clicked.connect(self.button_add_file_clicked)
+        self.button_calculate.clicked.connect(self.button_calculate_clicked)
+        self.button_close.clicked.connect(self.close)
+        self.listwidget_files.itemDoubleClicked.connect(self.list_doubleclicked)
