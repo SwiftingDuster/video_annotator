@@ -1,3 +1,5 @@
+import platform
+
 from PyQt5.QtCore import (QCoreApplication, QDir, QMetaObject, QModelIndex,
                           QRect, Qt, QUrl)
 from PyQt5.QtMultimedia import (QMediaContent, QMediaPlayer, QVideoFrame,
@@ -42,14 +44,19 @@ class Ui_MainWindow(QMainWindow):
 
         # == Video player ==
         self.video_player_widget = QVideoWidget()
-        self.frame_grabber = FrameGrabber(self)
         self.upper_h_layout.addWidget(self.video_player_widget)
         self.video_player_widget.setStyleSheet('background-color: black')
 
         # Backend media player
         self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
-        self.media_player.setVideoOutput([self.video_player_widget.videoSurface(), self.frame_grabber])
         self.media_player.setNotifyInterval(10)
+
+        if platform.system() == "Linux":
+            # On linux use QVideoProbe to get video frame due to problems with gstreamer.
+            self.media_player.setVideoOutput(self.video_player_widget)
+        else:
+            self.frame_grabber = FrameGrabber(self)  # Used to get video frame
+            self.media_player.setVideoOutput([self.video_player_widget.videoSurface(), self.frame_grabber])
 
         # == Information Panel ==
         self.upper_right_v_layout = QVBoxLayout()
@@ -334,15 +341,27 @@ class Ui_MainWindow(QMainWindow):
     def _button_bbox_clicked(self, segment: VideoAnnotationSegment):
         # Seek to segment start and get video frame
         self.media_player.setPosition(segment.start)
-        self.frame_grabber.frameAvailable.connect(self._bbox_frame_available)
+
+        if platform.system() == "Linux":
+            # Use QVideoProbe on linux because gstreamer errors out the normal way.
+            self.probe = QVideoProbe()
+            self.probe.setSource(self.media_player)
+            self.probe.videoFrameProbed.connect(self._bbox_frame_available)
+        else:
+            self.frame_grabber.frameAvailable.connect(self._bbox_frame_available)
 
     # Frame grabber callback
     def _bbox_frame_available(self, frame: QVideoFrame):
-        # Retrieved frame is used for bounding box drawing
-        self.frame_grabber.frameAvailable.disconnect(self._bbox_frame_available)
+        # Disconnect from signal because this is a one time event.
+        if platform.system() == "Linux":
+            self.probe.videoFrameProbed.disconnect(self._bbox_frame_available)
+        else:
+            self.frame_grabber.frameAvailable.disconnect(self._bbox_frame_available)
+
         self.media_player.pause()
         pos = frame.startTime() // 1000  # startTime() returns microseconds
         seg = self.annotation.find_segment(pos)
+        # Retrieved frame is used for bounding box drawing
         self.bb_window = BoundingBoxDialog(frame.image(), seg.boxes)
         self.bb_window.finish.connect(lambda boxes: self._save_bbox(frame, boxes))
         self.bb_window.exec()
