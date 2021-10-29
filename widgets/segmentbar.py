@@ -50,11 +50,12 @@ class WSegmentBar(QWidget):
         block_brush = QBrush(QColor('orange'), Qt.BrushStyle.SolidPattern)
 
         # Draw annotation segments as blocks
-        padding = 5
-        d_width = painter.device().width() - 2 * padding
+        padding = 11
+        offset = 6
+        d_width = painter.device().width() - padding
         d_height = painter.device().height()
         for segment in annotation._segments:
-            leftpos = int(segment.start / duration * d_width + padding)  # pos from left, pix from left/wdiget width = time at start/duration (ms)
+            leftpos = int(segment.start / duration * d_width + offset)  # pos from left, pix from left/wdiget width = time at start/duration (ms)
             rectwidth = int((segment.end - segment.start) / duration * d_width)  # segment rectangle width
             if rectwidth < 1:
                 rectwidth = 1
@@ -64,7 +65,7 @@ class WSegmentBar(QWidget):
         # Draw marker for current position of mediaplayer
         position = self.position
         position_brush = QBrush(QColor('black'), Qt.BrushStyle.SolidPattern)
-        posTick = QRect(round(padding + position/duration * d_width), 0, 2, d_height)
+        posTick = QRect(round(offset - 2 + position/duration * d_width), 0, 2, d_height)
         painter.fillRect(posTick, position_brush)
 
     # Callback from mediaplayer at close intervals (<10ms) when video is playing.
