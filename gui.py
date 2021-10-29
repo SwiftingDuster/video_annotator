@@ -139,10 +139,10 @@ class Ui_MainWindow(QMainWindow):
         self.setMenuBar(self.menubar)
         self.action_open_file = QAction(self)
         self.action_calc_agreement = QAction(self)
-        self.about = QAction(self)
+        self.action_about = QAction(self)
         self.menu_file.addAction(self.action_open_file)
         self.menu_file.addAction(self.action_calc_agreement)
-        self.menu_file.addAction(self.about)
+        self.menu_file.addAction(self.action_about)
         self.menubar.addAction(self.menu_file.menuAction())
 
         self.retranslateUi()
@@ -182,7 +182,7 @@ class Ui_MainWindow(QMainWindow):
         self.action_open_file.setText(_translate("MainWindow", "Open File..."))
         self.action_open_file.setToolTip(_translate("MainWindow", "Open video file for annotation"))
         self.action_open_file.setShortcut(_translate("MainWindow", "F1"))
-        self.about.setText(_translate("MainWindow", "About"))
+        self.action_about.setText(_translate("MainWindow", "About"))
 
         self.action_calc_agreement.setText(_translate("MainWindow", "Calculate..."))
         self.action_open_file.setToolTip(_translate("MainWindow", "Open XML Files"))
@@ -191,7 +191,7 @@ class Ui_MainWindow(QMainWindow):
     def setupEvents(self):
         self.action_open_file.triggered.connect(self._action_open_file_clicked)
         self.action_calc_agreement.triggered.connect(self._action_interagreement_click)
-        self.about.triggered.connect(self._action_about_clicked)
+        self.action_about.triggered.connect(self._action_about_clicked)
 
         self.button_play.clicked.connect(self._button_play_clicked)
         self.button_prev.clicked.connect(self._button_prev_clicked)
@@ -272,6 +272,8 @@ class Ui_MainWindow(QMainWindow):
     # [Event] Called when prev button is clicked.
     def _button_prev_clicked(self):
         new_pos = self.media_player.position() - 150
+
+        # When capturing, don't jump to the new position if it is part of an existing segment.
         if self.capturing and self.annotation.find_segment(new_pos) is not None:
             print("Entering segment")
             return
@@ -281,8 +283,9 @@ class Ui_MainWindow(QMainWindow):
     # [Event] Called when next button is clicked.
     def _button_next_clicked(self):
         new_pos = self.media_player.position() + 150
+        
+        # When capturing, don't jump to the new position if it is part of an existing segment.
         if self.capturing and self.annotation.find_segment(new_pos) is not None:
-            print("Entering segment")
             return
 
         self.media_player.setPosition(new_pos)
@@ -431,7 +434,7 @@ class Ui_MainWindow(QMainWindow):
 
         # Update enabled state of capture buttons.
         if self.capturing:
-            # If we encounter another segment while capturing, go to max end value and pause video
+            # If we encounter another segment while capturing, go to one frame before that segment and pause video
             if self.is_highlighting:
                 self.is_highlighting = False  # Prevent highlight getting cleared when seeking back
                 self.media_player.setPosition(self.capture_max)
