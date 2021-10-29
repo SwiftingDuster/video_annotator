@@ -359,6 +359,9 @@ class Ui_MainWindow(QMainWindow):
         else:
             self.frame_grabber.frameAvailable.connect(self._bbox_frame_available)
 
+        if self.media_player.state() != QMediaPlayer.State.PlayingState:
+            self.media_player.play()
+
     # Frame grabber callback
     def _bbox_frame_available(self, frame: QVideoFrame):
         # Disconnect from signal because this is a one time event.
