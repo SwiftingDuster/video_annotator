@@ -43,5 +43,5 @@ class InterAgreement:
             continuum.add(x[0], Segment(x[2], x[3]), '')
         dissim = PositionalSporadicDissimilarity(delta_empty=1.0)
         print('Starting Calculation')
-        gamma_results = continuum.compute_gamma(dissim, precision_level=0.1)
+        gamma_results = continuum.compute_gamma(dissim, precision_level=0.1, fast=True)
         return gamma_results.gamma
