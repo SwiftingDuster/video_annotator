@@ -78,8 +78,9 @@ class WSegmentBar(QWidget):
     def mediaplayer_duration_changed(self, duration):
         if not self.isEnabled():
             return
-        self.duration = duration
-        self.update()
+        if duration:
+            self.duration = duration
+            self.update()
 
     # Sets desired size as per size policy specified
     def sizeHint(self):
