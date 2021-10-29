@@ -1,44 +1,56 @@
-from PyQt5.QtGui import QBrush, QColor, QPainter
-from PyQt5.QtCore import QRect, QSize, Qt
-from PyQt5.QtWidgets import QSizePolicy, QWidget
 from models import VideoAnnotationData
+from PyQt5.QtCore import QRect, QSize, Qt
+from PyQt5.QtGui import QBrush, QColor, QPainter
+from PyQt5.QtMultimedia import QMediaPlayer
+from PyQt5.QtWidgets import QSizePolicy, QWidget
+
 
 class WSegmentBar(QWidget):
+    """
+    Widget providing an overview of annotated segments in the form of a colour coded segment bar. 
+    """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, media_player: QMediaPlayer):
+        super().__init__()
 
-        self.setSizePolicy(
-            QSizePolicy.MinimumExpanding,
-            QSizePolicy.Minimum
-        )
-        # Start UI with first paint event
-        self.paintEvent = self.paintAction1
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
-    # Paint event to draw empty segment bar
-    def paintAction1(self, e):
+        # Subscribe to mediaplayer events
+        media_player.positionChanged.connect(self.mediaplayer_position_changed)
+        media_player.durationChanged.connect(self.mediaplayer_duration_changed)
+
+        self.position = 0
+        self.duration = 1
+
+    # Set annotation data for drawing segment blocks
+    def set_data(self, annotation: VideoAnnotationData):
+        self.annotation = annotation
+        self.update()
+
+    # Paint the segment bar and the annotation blocks.
+    def paintEvent(self, e):
         painter = QPainter(self)
-        brush = QBrush()
-        brush.setColor(QColor(230, 230, 230, 255))
-        brush.setStyle(Qt.SolidPattern)
-        rect = QRect(0, 0, painter.device().width(), painter.device().height())
-        painter.fillRect(rect, brush)
+        segmentbar_rect = QRect(0, 0, painter.device().width(), painter.device().height())
+        # Widget is enabled externally when a video file is loaded
+        if not self.isEnabled():
+            # Draw segment bar (greyed out)
+            bar_brush = QBrush(QColor(230, 230, 230, 255), Qt.BrushStyle.SolidPattern)
+            painter.fillRect(segmentbar_rect, bar_brush)
+        else:
+            # Draw segment bar
+            bar_brush = QBrush(QColor(200, 200, 200, 255), Qt.BrushStyle.SolidPattern)
+            painter.fillRect(segmentbar_rect, bar_brush)
+            # Draw segment blocks
+            self.draw_segment_blocks(painter)
 
-    # Second paint event to be used after video file opened
-    def paintAction2(self, e):
-        painter = QPainter(self)
-        brush = QBrush()
-        brush.setColor(QColor(200, 200, 200, 255))
-        brush.setStyle(Qt.SolidPattern)
-        rect = QRect(0, 0, painter.device().width(), painter.device().height())
-        painter.fillRect(rect, brush)
+    # Draw colored blocks on the segment bar
+    def draw_segment_blocks(self, painter: QPainter):
+        annotation = self.annotation
+        duration = self.duration
+        block_brush = QBrush(QColor('orange'), Qt.BrushStyle.SolidPattern)
 
-        self.drawSegmentBlocks(painter, brush, self.annotation, self.duration, self.position)
-
-    # Function to draw colored blocks on the segment bar
-    def drawSegmentBlocks(self, painter, brush, annotation:VideoAnnotationData, duration, position):
+        # Draw annotation segments as blocks
         padding = 5
-        brush.setColor(QColor('orange'))
         d_width = painter.device().width() - 2 * padding
         d_height = painter.device().height()
         for segment in annotation._segments:
@@ -47,24 +59,28 @@ class WSegmentBar(QWidget):
             if rectwidth < 1:
                 rectwidth = 1
             segbox = QRect(leftpos, 0, rectwidth, d_height)
-            painter.fillRect(segbox, brush)
+            painter.fillRect(segbox, block_brush)
 
-        brush.setColor(QColor('black'))
-        posTick = QRect(padding + position/duration * d_width, 0, 1, d_height)
-        painter.fillRect(posTick, brush)
+        # Draw marker for current position of mediaplayer
+        position = self.position
+        position_brush = QBrush(QColor('black'), Qt.BrushStyle.SolidPattern)
+        posTick = QRect(padding + position/duration * d_width, 0, 2, d_height)
+        painter.fillRect(posTick, position_brush)
 
-        painter.end()
+    # Callback from mediaplayer at close intervals (<10ms) when video is playing.
+    def mediaplayer_position_changed(self, pos):
+        if not self.isEnabled():
+            return
+        self.position = pos
+        self.update()
 
-    # sets minimum size as per size policy specified
+    # Callback from mediaplayer when total duration of video change.
+    def mediaplayer_duration_changed(self, duration):
+        if not self.isEnabled():
+            return
+        self.duration = duration
+        self.update()
+
+    # Sets desired size as per size policy specified
     def sizeHint(self):
         return QSize(200, 7)
-
-    # function to trigger switch to 2nd paint event and pass variables for drawing segment blocks
-    def setData(self, annotation:VideoAnnotationData, duration, position):
-        self.annotation = annotation
-        if duration == 0:
-            duration = 1
-        self.duration = duration
-        self.position = position
-        self.paintEvent = self.paintAction2
-        self.update()

@@ -104,9 +104,9 @@ class Ui_MainWindow(QMainWindow):
         self.label_video_position = QLabel()
         self.lower_h_layout.addWidget(self.label_video_position)
         # Video seekbar
-        self.segbar = WSegmentBar()
+        self.segment_bar = WSegmentBar(self.media_player)
         self.seek_layout = QVBoxLayout()
-        self.seek_layout.addWidget(self.segbar)
+        self.seek_layout.addWidget(self.segment_bar)
         self.seek_slider = QSlider()
         self.seek_slider.setOrientation(Qt.Horizontal)
         self.seek_layout.addWidget(self.seek_slider)
@@ -156,6 +156,7 @@ class Ui_MainWindow(QMainWindow):
         self.button_cap_end.setEnabled(False)
         self.button_load.setEnabled(False)
         self.button_export.setEnabled(False)
+        self.segment_bar.setEnabled(False)
         self.seek_slider.setEnabled(False)
         self.volume_slider.setEnabled(False)
         self.listwidget_captures.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
@@ -222,21 +223,23 @@ class Ui_MainWindow(QMainWindow):
             self.annotation.load(file_path)
             self.listwidget_captures.clear()
             self.seg_to_listwidget.clear()
+
+            self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(file_path)))
             # Set video info
             self.text_videoinfo.setText("Filename: {0}\nFPS: {1}\nResolution: {2}x{3}".format(self.annotation.filename,
                                         self.annotation.fps, self.annotation.resolution[0], self.annotation.resolution[1]))
+            # Update annotations displayed in segment bar
+            self.segment_bar.set_data(self.annotation)
 
-            self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(file_path)))
-
+            self.segment_bar.setEnabled(True)
             self.seek_slider.setEnabled(True)
             self.volume_slider.setEnabled(True)
             self.button_prev.setEnabled(True)
             self.button_next.setEnabled(True)
             self.button_load.setEnabled(True)
 
-            self._update_segbar()
-
     # [Event] Shows inter agreement calculator dialog.
+
     def _action_interagreement_click(self):
         self.dialog = AgreementDialog()
         self.dialog.setWindowFlag(Qt.WindowType.Window)
@@ -448,8 +451,6 @@ class Ui_MainWindow(QMainWindow):
                 if self.button_cap_start.isEnabled():
                     self.button_cap_start.setEnabled(False)
 
-        self._update_segbar()
-
     # [Event] Called when the total duration of the video changes, such as opening a new video file.
     def _media_duration_changed(self, duration):
         self.seek_slider.setRange(0, duration)
@@ -497,25 +498,17 @@ class Ui_MainWindow(QMainWindow):
         self.listwidget_captures.setItemWidget(listwidget_item, seg_widget)
         self.seg_to_listwidget[segment] = listwidget_item
 
-        self._update_segbar()
-
-    # Force a refresh on segments listwidget
+    # Rebuild segments listwidget from annotation data
     def _update_capture_segments(self):
         self.listwidget_captures.clear()
         for s in self.annotation.segments:
             self._add_capture_segment(self.annotation, s)
-
-        self._update_segbar()
 
     # Delete all annotation segments currently selected.
     def _delete_selected_segments(self):
         items = self.listwidget_captures.selectedItems()
         for item in items:
             self._delete_segment(item)
-
-        self._update_capture_segments()
-
-        self._update_segbar()
 
     # Delete a single annotation segment
     def _delete_segment(self, item):
@@ -525,8 +518,4 @@ class Ui_MainWindow(QMainWindow):
         # Remove in captured frames too
         self.annotation.segments.pop(index)
 
-        self._update_segbar()
-
-    # Update annotation segments in segment bar
-    def _update_segbar(self):
-        self.segbar.setData(self.annotation, self.media_player.duration(), self.media_player.position())
+        self._update_capture_segments()
