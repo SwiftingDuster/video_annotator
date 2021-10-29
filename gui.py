@@ -283,7 +283,7 @@ class Ui_MainWindow(QMainWindow):
     # [Event] Called when next button is clicked.
     def _button_next_clicked(self):
         new_pos = self.media_player.position() + 150
-        
+
         # When capturing, don't jump to the new position if it is part of an existing segment.
         if self.capturing and self.annotation.find_segment(new_pos) is not None:
             return
@@ -335,6 +335,7 @@ class Ui_MainWindow(QMainWindow):
 
             self.annotation = annotation
             self._update_capture_segments()
+            self.segment_bar.set_data(self.annotation)
 
     # [Event] Called when export button is clicked.
     def _button_export_clicked(self):
