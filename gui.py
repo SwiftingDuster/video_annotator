@@ -8,8 +8,8 @@ from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtWidgets import (QAbstractItemView, QAction, QFileDialog,
                              QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
                              QMainWindow, QMenu, QMenuBar, QMessageBox,
-                             QPushButton, QSlider, QStatusBar, QStyle,
-                             QTextEdit, QVBoxLayout, QWidget)
+                             QPushButton, QSlider, QStyle, QTextEdit,
+                             QVBoxLayout, QWidget)
 
 from framegrabber import FrameGrabber
 from models import VideoAnnotationData, VideoAnnotationSegment

@@ -1,4 +1,3 @@
-# interagreement.py defines functions to
 import os
 import xml.etree.ElementTree as ET
 

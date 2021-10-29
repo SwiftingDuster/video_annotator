@@ -1,5 +1,3 @@
-# Dialog box for calculating agreement
-
 import os
 
 from interagreement import InterAgreement

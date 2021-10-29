@@ -1,5 +1,3 @@
-"""This file contains object models for the video annotator"""
-
 import os
 from dataclasses import dataclass, field
 
