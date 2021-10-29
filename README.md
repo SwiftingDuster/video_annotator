@@ -1,7 +1,8 @@
 # Project 14: Python Video Annotator
 This is a video annotator written in python3 using the PyQt5 framework.
+P8 - Team 53
 
-# Setup
+### Setup
 1. Clone this git repository
 
 ```
@@ -18,7 +19,7 @@ pip3 install PyQt5 opencv-python-headless pygamma-agreement
 
 Windows systems requires K-Lite Codec Pack from [here](https://codecguide.com/download_kl.htm) to be installed in order to play certain video formats.
 
-# Run
+### Run
 ```
 python3 main.py
 ```
