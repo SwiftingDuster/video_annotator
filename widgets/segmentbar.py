@@ -64,7 +64,7 @@ class WSegmentBar(QWidget):
         # Draw marker for current position of mediaplayer
         position = self.position
         position_brush = QBrush(QColor('black'), Qt.BrushStyle.SolidPattern)
-        posTick = QRect(padding + position/duration * d_width, 0, 2, d_height)
+        posTick = QRect(round(padding + position/duration * d_width), 0, 2, d_height)
         painter.fillRect(posTick, position_brush)
 
     # Callback from mediaplayer at close intervals (<10ms) when video is playing.

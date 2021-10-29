@@ -296,7 +296,7 @@ class Ui_MainWindow(QMainWindow):
 
         # Find the last valid position this segment can end
         seg = self.annotation.find_next_segment(self.media_player.position())
-        frame_time = 1000 / self.annotation.fps  # Subtract frame time to end at previous frame
+        frame_time = round(1000 / self.annotation.fps)  # Subtract frame time to end at previous frame
         self.capture_max = self.media_player.duration() if seg == None else (seg.start - frame_time)
 
     # [Event] Called when end capture button is clicked.
@@ -309,6 +309,7 @@ class Ui_MainWindow(QMainWindow):
         self.capturing = False
         self.button_cap_start.setEnabled(True)
         self.button_cap_end.setEnabled(False)
+        self.segment_bar.update()
 
     # [Event] Called when export button is clicked.
     def _button_load_clicked(self):
