@@ -78,6 +78,7 @@ class WSegmentBar(QWidget):
     def mediaplayer_duration_changed(self, duration):
         if not self.isEnabled():
             return
+        # Fix occasional crash when duration = 0 (divide by 0 error)
         if duration:
             self.duration = duration
             self.update()

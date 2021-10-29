@@ -525,3 +525,4 @@ class Ui_MainWindow(QMainWindow):
         self.annotation.segments.pop(index)
 
         self._update_capture_segments()
+        self.segment_bar.update()
