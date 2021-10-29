@@ -237,6 +237,7 @@ class Ui_MainWindow(QMainWindow):
             self.button_prev.setEnabled(True)
             self.button_next.setEnabled(True)
             self.button_load.setEnabled(True)
+            self.capturing = False
 
     # [Event] Shows inter agreement calculator dialog.
 
