@@ -275,7 +275,7 @@ class Ui_MainWindow(QMainWindow):
 
         # When capturing, don't jump to the new position if it is part of an existing segment.
         if self.capturing and self.annotation.find_segment(new_pos) is not None:
-            print("Entering segment")
+            print("New position overlaps annotation, will not seek.")
             return
 
         self.media_player.setPosition(new_pos)
@@ -286,6 +286,7 @@ class Ui_MainWindow(QMainWindow):
 
         # When capturing, don't jump to the new position if it is part of an existing segment.
         if self.capturing and self.annotation.find_segment(new_pos) is not None:
+            print("New position overlaps annotation, will not seek.")
             return
 
         self.media_player.setPosition(new_pos)
@@ -312,7 +313,6 @@ class Ui_MainWindow(QMainWindow):
         self.capturing = False
         self.button_cap_start.setEnabled(True)
         self.button_cap_end.setEnabled(False)
-        self.segment_bar.update()
 
     # [Event] Called when export button is clicked.
     def _button_load_clicked(self):
@@ -370,10 +370,11 @@ class Ui_MainWindow(QMainWindow):
         self.media_player.pause()
         pos = frame.startTime() // 1000  # startTime() returns microseconds
         seg = self.annotation.find_segment(pos)
-        # Retrieved frame is used for bounding box drawing
-        self.bb_window = BoundingBoxDialog(frame.image(), seg.boxes)
-        self.bb_window.finish.connect(lambda boxes: self._save_bbox(frame, boxes))
-        self.bb_window.exec()
+        if seg is not None:
+            # Retrieved frame is used for bounding box drawing
+            self.bb_window = BoundingBoxDialog(frame.image(), seg.boxes)
+            self.bb_window.finish.connect(lambda boxes: self._save_bbox(frame, boxes))
+            self.bb_window.exec()
 
     # Bounding box dialog finished callback
     def _save_bbox(self, frame: QVideoFrame, boxes: list[QRect]):
@@ -496,13 +497,15 @@ class Ui_MainWindow(QMainWindow):
         seg_widget = CaptureSegmentWidget(count, annotation, segment, listwidget_item)
         seg_widget.play.connect(lambda segment: self._seek_slider_position_changed(segment.start))
         seg_widget.bound_box.connect(self._button_bbox_clicked)
-        seg_widget.delete.connect(lambda item: self._delete_segment(item))
+        seg_widget.delete.connect(lambda item: self._delete_segment(item, True))
 
         listwidget_item.setSizeHint(seg_widget.sizeHint())
 
         self.listwidget_captures.addItem(listwidget_item)
         self.listwidget_captures.setItemWidget(listwidget_item, seg_widget)
         self.seg_to_listwidget[segment] = listwidget_item
+
+        self.segment_bar.update()
 
     # Rebuild segments listwidget from annotation data
     def _update_capture_segments(self):
@@ -515,14 +518,16 @@ class Ui_MainWindow(QMainWindow):
         items = self.listwidget_captures.selectedItems()
         for item in items:
             self._delete_segment(item)
+        self._update_capture_segments()
 
     # Delete a single annotation segment
-    def _delete_segment(self, item):
+    def _delete_segment(self, item, update=False):
         # Remove from UI
         index = self.listwidget_captures.row(item)
         self.listwidget_captures.takeItem(index)
         # Remove in captured frames too
         self.annotation.segments.pop(index)
 
-        self._update_capture_segments()
+        if update:
+            self._update_capture_segments()
         self.segment_bar.update()
