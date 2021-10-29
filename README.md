@@ -1,5 +1,6 @@
 # Project 14: Python Video Annotator
 This is a video annotator written in python3 using the PyQt5 framework.
+
 P8 - Team 53
 
 ### Setup
